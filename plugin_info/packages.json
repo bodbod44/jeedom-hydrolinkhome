@@ -1,0 +1,23 @@
+{
+  "pre-install": {
+  },
+  "apt": {
+  },
+  "pip3": {
+    "pyserial" : {"reinstall" : true},
+    "requests" : {"reinstall" : true}
+  },
+  "npm": {
+    "plugins/hydrolinkhome/ressources/demond"  : {}
+  },
+  "composer": {
+       "plugins/hydrolinkhome"  : {}
+  },
+  "yarn": {
+    "plugins/hydrolinkhome/ressources/demond"  : {}
+  },
+  "plugin": {
+  },
+  "post-install": {
+  }
+}

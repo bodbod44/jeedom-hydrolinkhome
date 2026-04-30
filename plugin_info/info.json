@@ -1,0 +1,72 @@
+{
+    "id": "hydrolinkhome",
+    "name": "HydroLink Home",
+    "pluginVersion": "0.1",
+    "specialAttributes": {
+        "object": {
+            "toto": {
+                "name": {
+                    "fr_FR": "Plop je suis un attribut sp\u00e9cial"
+                },
+                "type": "input"
+            },
+            "toto2": {
+                "name": {
+                    "fr_FR": "Plop je suis un attribut sp\u00e9cial number"
+                },
+                "type": "number"
+            }
+        },
+        "user": {
+            "toto": {
+                "name": {
+                    "fr_FR": "Plop je suis un attribut sp\u00e9cial"
+                },
+                "type": "select",
+                "values": [
+                    {
+                        "value": "1",
+                        "name": "valeur 1"
+                    },
+                    {
+                        "value": "plop",
+                        "name": "valeur plop"
+                    }
+                ]
+            }
+        }
+    },
+    "description": {
+        "fr_FR": "Template servant de base \u00e0 la cr\u00e9ation de plugins pour Jeedom"
+    },
+    "licence": "AGPL",
+    "author": "bodbod44",
+    "require": "4.2",
+    "os": {
+        "min": 10,
+        "max": 12.99
+    },
+    "category": "energy",
+    "hasDependency": false,
+    "hasOwnDeamon": false,
+    "changelog_beta": "https://doc.jeedom.com/#language#/plugins/programming/hydrolinkhome/beta/changelog",
+    "changelog": "https://doc.jeedom.com/#language#/plugins/programming/hydrolinkhome/changelog",
+    "documentation_beta": "https://doc.jeedom.com/#language#/plugins/programming/hydrolinkhome/beta",
+    "documentation": "https://doc.jeedom.com/#language#/plugins/programming/hydrolinkhome",
+    "link": {
+        "forum": "Lien vers le forum",
+        "video": "Lien vers une video"
+    },
+    "language": [
+        "fr_FR"
+    ],
+    "compatibility": [
+        "smart",
+        "luna",
+        "atlas",
+        "rpi",
+        "docker",
+        "diy",
+        "mobile"
+    ]
+}
