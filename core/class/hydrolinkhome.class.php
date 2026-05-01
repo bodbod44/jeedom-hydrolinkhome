@@ -151,77 +151,66 @@ class hydrolinkhome extends eqLogic {
 
     
         // bla bla
-        if( isset ($data['properties']['gallons_used_today']['value']) )
-            $this->checkAndUpdateCmd('gallons_used_today', $data['properties']['gallons_used_today']['value'] * 3.785 );
+        $this->checkAndUpdateCmdIsset('gallons_used_today', $data['properties']['gallons_used_today']['value'] * 3.785 );
 
         // bla bla
-        if( isset ($data['properties']['avg_daily_use_gals']['value']) )
-            $this->checkAndUpdateCmd('avg_daily_use_gals', $data['properties']['avg_daily_use_gals']['value'] * 3.785 );
+        $this->checkAndUpdateCmdIsset('avg_daily_use_gals', $data['properties']['avg_daily_use_gals']['value'] * 3.785 );
 
         // bla bla
-        if( isset ($data['properties']['salt_level_tenths']['value']) )
-            $this->checkAndUpdateCmd('salt_level_tenths', $data['properties']['salt_level_tenths']['value'] * 0.1 );
+        $this->checkAndUpdateCmdIsset('salt_level_tenths', $data['properties']['salt_level_tenths']['value'] * 0.1 );
 
         // bla bla
-        if( isset ($data['properties']['treated_water_avail_gals']['value']) )
-            $this->checkAndUpdateCmd('treated_water_avail_gals', $data['properties']['treated_water_avail_gals']['value'] * 3.785 );
+        $this->checkAndUpdateCmdIsset('treated_water_avail_gals', $data['properties']['treated_water_avail_gals']['value'] * 3.785 );
 
         // bla bla
-        if( isset ($data['properties']['_internal_is_online']['value']) )
-            $this->checkAndUpdateCmd('_internal_is_online', $data['properties']['_internal_is_online']['value'] );
+        $this->checkAndUpdateCmdIsset('_internal_is_online', $data['properties']['_internal_is_online']['value'] );
 
         // bla bla
-        if( isset ($data['enriched_data']['water_treatment']['salt_level']['salt_level_percent_rounded']) )
-            $this->checkAndUpdateCmd('salt_level_percent_rounded', $data['enriched_data']['water_treatment']['salt_level']['salt_level_percent_rounded'] );
+        $this->checkAndUpdateCmdIsset('salt_level_percent_rounded', $data['enriched_data']['water_treatment']['salt_level']['salt_level_percent_rounded'] );
 
         // bla bla
-        if( isset ($data['enriched_data']['water_treatment']['salt_level_percent']) )
-            $this->checkAndUpdateCmd('salt_level_percent', $data['enriched_data']['water_treatment']['salt_level_percent'] );
+        $this->checkAndUpdateCmdIsset('salt_level_percent', $data['enriched_data']['water_treatment']['salt_level_percent'] );
 
         // bla bla
-        if( isset ($data['properties']['gallons_used_today']['converted_value']) )
-            $this->checkAndUpdateCmd('gallons_used_today_converted_value', $data['properties']['gallons_used_today']['converted_value'] );    
+        $this->checkAndUpdateCmdIsset('gallons_used_today_converted_value', $data['properties']['gallons_used_today']['converted_value'] );    
  
         // bla bla
-        if( isset ($data['properties']['avg_daily_use_gals']['converted_value']) )
-            $this->checkAndUpdateCmd('avg_daily_use_gals_converted_value', $data['properties']['avg_daily_use_gals']['converted_value'] );
+        $this->checkAndUpdateCmdIsset('avg_daily_use_gals_converted_value', $data['properties']['avg_daily_use_gals']['converted_value'] );
 
         // bla bla
-        if( isset ($data['enriched_data']['water_treatment']['total_water_used']['value']) )
-            $this->checkAndUpdateCmd('water_treatment_total_water_used_value', $data['enriched_data']['water_treatment']['total_water_used']['value'] );
+        $this->checkAndUpdateCmdIsset('water_treatment_total_water_used_value', $data['enriched_data']['water_treatment']['total_water_used']['value'] );
 
         // bla bla
-        if( isset ($data['enriched_data']['water_treatment']['treated_water_available']['value']) )
-            $this->checkAndUpdateCmd('treated_water_available_value', $data['enriched_data']['water_treatment']['treated_water_available']['value'] );
+        $this->checkAndUpdateCmdIsset('treated_water_available_value', $data['enriched_data']['water_treatment']['treated_water_available']['value'] );
 
         // bla bla
-        if( isset ($data['properties']['current_water_flow_gpm']['converted_value']) )
-            $this->checkAndUpdateCmd('current_water_flow_gpm_converted_value', $data['properties']['current_water_flow_gpm']['converted_value'] );
+        $this->checkAndUpdateCmdIsset('current_water_flow_gpm_converted_value', $data['properties']['current_water_flow_gpm']['converted_value'] );
 
         // bla bla
-        if( isset ($data['properties']['out_of_salt_estimate_days']['value']) )
-            $this->checkAndUpdateCmd('out_of_salt_estimate_days_value', $data['properties']['out_of_salt_estimate_days']['value'] );
+        $this->checkAndUpdateCmdIsset('out_of_salt_estimate_days_value', $data['properties']['out_of_salt_estimate_days']['value'] );
 
         // bla bla
-        if( isset ($data['enriched_data']['water_treatment']['days_since_last_recharge']) )
-            $this->checkAndUpdateCmd('days_since_last_recharge', $data['enriched_data']['water_treatment']['days_since_last_recharge'] );
+        $this->checkAndUpdateCmdIsset('days_since_last_recharge', $data['enriched_data']['water_treatment']['days_since_last_recharge'] );
 
         // bla bla
-        if( isset ($data['enriched_data']['water_treatment']['total_recharges']) )
-            $this->checkAndUpdateCmd('total_recharges', $data['enriched_data']['water_treatment']['total_recharges'] );
+        $this->checkAndUpdateCmdIsset('total_recharges', $data['enriched_data']['water_treatment']['total_recharges'] );
 
         // bla bla
-        if( isset ($data['enriched_data']['water_treatment']['regeneration_status']) )
-            $this->checkAndUpdateCmd('regeneration_status', $data['enriched_data']['water_treatment']['regeneration_status'] );
+        $this->checkAndUpdateCmdIsset('regeneration_status', $data['enriched_data']['water_treatment']['regeneration_status'] );
 
         // bla bla
-        if( isset ($data['properties']['gallons_used_today']['updated_at']) )
-            $this->checkAndUpdateCmd('gallons_used_today_updated_at', $data['properties']['gallons_used_today']['updated_at'] );
+        $this->checkAndUpdateCmdIsset('gallons_used_today_updated_at', $data['properties']['gallons_used_today']['updated_at'] );
     
   }
   
+    //* Fonction exécutée automatiquement toutes les minutes par Jeedom
+    public function checkAndUpdateCmdIsset( $cmd , $data ) {
+        if( isset($data) )
+            $this->checkAndUpdateCmd( $cmd , $data );
+    }
   
-  //* Fonction exécutée automatiquement toutes les minutes par Jeedom
+  
+    //* Fonction exécutée automatiquement toutes les minutes par Jeedom
     public static function cron() {
         // Mise à jour des commandes infos
         $refresh_freq = config::byKey('refresh_freq',__CLASS__,'10') ; // Toutes les 10 min par défaut si non parametré
@@ -394,6 +383,8 @@ class hydrolinkhome extends eqLogic {
 			$cmd->setDisplay('invertBinary',0);
             $cmd->setConfiguration('maxValue',10);
 			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+            $cmd->setTemplate('dashboard', 'gauge');
+            $cmd->setTemplate('mobile', 'gauge');
           	$cmd->setIsHistorized(0);
             $cmd->setIsVisible(1);
             $cmd->save();
