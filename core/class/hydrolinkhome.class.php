@@ -59,7 +59,8 @@ class hydrolinkhome extends eqLogic {
   }
   
   public static function synchronise(){
-
+		log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
+    
     	$result = api_hydrolinkhome::getList() ;
     	
     	if( $result != false ){
@@ -70,23 +71,32 @@ class hydrolinkhome extends eqLogic {
               foreach ($result['data'] as $device) {
                 log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $device='.$device['id'] );
                 
+                log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': trace' );
                 $eqLogic = eqLogic::byLogicalId( $device['id'] , 'hydrolinkhome', false) ;
+                //log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': '.var_export( $eqLogic , true)  );
                 if( ! is_object( $eqLogic ) ){
-                  $eqLogic = self::createDevice( $device['id'] , $device ) ;
+                  log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Je vais créer le module' );
+                  $eqLogic = self::createDevice( $device['id'] ) ;
                   $return['new']++ ;
                 }
-                    
-                $eqLogic->setLogicalId( $deviceId );            
-                $eqLogic->setEqType_name('hydrolinkhome');
-                $eqLogic->setName( $deviceId );
-                $eqLogic->setConfiguration('deviceid',$deviceId );
+                else
+                  log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Module '.$device['id'].' présent' );
+       
+                $eqLogic->setName( $device['thing_name'] );
+                
                 $eqLogic->setConfiguration('system_type_display',$device['system_type_display'] );
-                $eqLogic->setConfiguration('image_url', $device['image_url'] );
+                $eqLogic->setConfiguration('image_url'          ,$device['image_url'] );
+                $eqLogic->setConfiguration('user'               ,$device['user']['first_name'].' '.$device['user']['last_name'] );
+                $eqLogic->setConfiguration('location'           ,$device['location'] );
+                //$eqLogic->setConfiguration('is_online'          ,$device['is_online'] );
+                
+                $eqLogic->setConfiguration('wifi_ssid'          ,$device['properties']['wifi_ssid']['value'] );
 
                 $eqLogic->save();
 
                 // Maj des données
-                $eqLogic->updateDeviceCmd( $deviceId , $device['properties'] ) ;
+                //$eqLogic->updateDeviceCmd( $device['id'] , $device ) ;
+                $eqLogic->updateDeviceCmd( $device['id'] ) ;
                 
               }
             }
@@ -95,13 +105,18 @@ class hydrolinkhome extends eqLogic {
     	return $return['new'] ;
   }
   
-  public static function createDevice( $deviceId , $data ){
+  public static function createDevice( $deviceId ){
+    		log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $device='.$deviceId );
             $eqLogic = eqLogic::byLogicalId( $deviceId , 'hydrolinkhome', false);
             if (! is_object($eqLogic)) {   /// Creation des devices inexistants
               	// RISQUE si logcid <>n mais name identique
                 $eqLogic = new hydrolinkhome();
-                $eqLogic->setIsVisible(1);
+              	$eqLogic->setEqType_name('hydrolinkhome');
+              	$eqLogic->setLogicalId( $deviceId );         
+              	$eqLogic->setName( $deviceId );
+              	$eqLogic->setIsVisible(1);
                 $eqLogic->setIsEnable(1);
+              	$eqLogic->save();
             }
             else{
               log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Device '.$deviceId.' deja créé' );
@@ -115,21 +130,18 @@ class hydrolinkhome extends eqLogic {
     
               // bla bla
             if( $data == null ){
-                $data = api_hydrolinkhome::getDetail( $deviceId ) ;
-              	$properties = $data['device']['properties'] ;
+                $result = api_hydrolinkhome::getDetail( $deviceId ) ;
+              	$data = $result['device'] ;
             }
-    		else{
-              $properties = $data['device']['properties'] ;
-    		}
     
-    if( !isset( _internal_is_online ) ){
+    if( !isset( $data['properties']['_internal_is_online'] ) ){
       log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': json invalide' );
       return false ;
     }
       
     
-    		log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $data '.$data['device']['system_type'] );
     
+    		log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $data '.$data['system_type'] );
     
       /*          return array(   "out_of_salt_estimate_days" => array('Recharger Sel', 'info', 'numeric', "jours", 0, "GENERIC_INFO", 'jauge', 'jauge', 'A',1,365),
 			"gallons_used_today" => array('Ce jour', 'info', 'numeric', "litres", 0, "GENERIC_INFO", 'jauge', 'jauge', 'B',3.785,1000),
@@ -142,32 +154,93 @@ class hydrolinkhome extends eqLogic {
     
         
     
+
     
             // bla bla
-            if( isset ($properties['out_of_salt_estimate_days']['value']) )
-                $this->checkAndUpdateCmd('out_of_salt_estimate_days', $properties['out_of_salt_estimate_days']['value'] );
+            if( isset ($data['properties']['gallons_used_today']['value']) )
+                $this->checkAndUpdateCmd('gallons_used_today', $data['properties']['gallons_used_today']['value'] * 3.785 );
     
             // bla bla
-            if( isset ($properties['gallons_used_today']['value']) )
-                $this->checkAndUpdateCmd('gallons_used_today', $properties['gallons_used_today']['value'] * 3.785 );
+            if( isset ($data['properties']['avg_daily_use_gals']['value']) )
+                $this->checkAndUpdateCmd('avg_daily_use_gals', $data['properties']['avg_daily_use_gals']['value'] * 3.785 );
     
             // bla bla
-            if( isset ($properties['avg_daily_use_gals']['value']) )
-                $this->checkAndUpdateCmd('avg_daily_use_gals', $properties['avg_daily_use_gals']['value'] * 3.785 );
+            if( isset ($data['properties']['salt_level_tenths']['value']) )
+                $this->checkAndUpdateCmd('salt_level_tenths', $data['properties']['salt_level_tenths']['value'] * 0.1 );
     
             // bla bla
-            if( isset ($properties['salt_level_tenths']['value']) )
-                $this->checkAndUpdateCmd('salt_level_tenths', $properties['salt_level_tenths']['value'] * 0.1 );
+            if( isset ($data['properties']['treated_water_avail_gals']['value']) )
+                $this->checkAndUpdateCmd('treated_water_avail_gals', $data['properties']['treated_water_avail_gals']['value'] * 3.785 );
     
             // bla bla
-            if( isset ($properties['treated_water_avail_gals']['value']) )
-                $this->checkAndUpdateCmd('treated_water_avail_gals', $properties['treated_water_avail_gals']['value'] * 3.785 );
+            if( isset ($data['properties']['_internal_is_online']['value']) )
+                $this->checkAndUpdateCmd('_internal_is_online', $data['properties']['_internal_is_online']['value'] );
+
+    
     
             // bla bla
-            if( isset ($properties['_internal_is_online']['value']) )
-                $this->checkAndUpdateCmd('_internal_is_online', $properties['_internal_is_online']['value'] );
+            if( isset ($data['enriched_data']['water_treatment']['salt_level']['salt_level_percent_rounded']) )
+                $this->checkAndUpdateCmd('salt_level_percent_rounded', $data['enriched_data']['water_treatment']['salt_level']['salt_level_percent_rounded'] );
     
-    //image_url
+            // bla bla
+            if( isset ($data['enriched_data']['water_treatment']['salt_level_percent']) )
+                $this->checkAndUpdateCmd('salt_level_percent', $data['enriched_data']['water_treatment']['salt_level_percent'] );
+    
+            // bla bla
+            if( isset ($data['properties']['gallons_used_today']['converted_value']) )
+                $this->checkAndUpdateCmd('gallons_used_today_converted_value', $data['properties']['gallons_used_today']['converted_value'] );    
+     
+            // bla bla      avg_daily_use_gals.converted_value
+            if( isset ($data['properties']['avg_daily_use_gals']['converted_value']) )
+                $this->checkAndUpdateCmd('avg_daily_use_gals_converted_value', $data['properties']['avg_daily_use_gals']['converted_value'] );
+    
+    
+    
+    /*
+    water_treatment.total_water_used.value
+water_treatment.treated_water_available.value
+current_water_flow_gpm.converted_value
+out_of_salt_estimate_days.value
+water_treatment.days_since_last_recharge
+water_treatment.total_recharges
+water_treatment.regeneration_status
+
+gallons_used_today.updated_at
+    
+    */
+    
+            // bla bla
+            if( isset ($data['enriched_data']['water_treatment']['total_water_used']['value']) )
+                $this->checkAndUpdateCmd('water_treatment_total_water_used_value', $data['enriched_data']['water_treatment']['total_water_used']['value'] );
+
+            // bla bla
+            if( isset ($data['enriched_data']['water_treatment']['treated_water_available']['value']) )
+                $this->checkAndUpdateCmd('treated_water_available_value', $data['enriched_data']['water_treatment']['treated_water_available']['value'] );
+
+            // bla bla
+            if( isset ($data['properties']['current_water_flow_gpm']['converted_value']) )
+                $this->checkAndUpdateCmd('current_water_flow_gpm_converted_value', $data['properties']['current_water_flow_gpm']['converted_value'] );
+
+            // bla bla
+            if( isset ($data['properties']['out_of_salt_estimate_days']['value']) )
+                $this->checkAndUpdateCmd('out_of_salt_estimate_days_value', $data['properties']['out_of_salt_estimate_days']['value'] );
+
+            // bla bla
+            if( isset ($data['enriched_data']['water_treatment']['days_since_last_recharge']) )
+                $this->checkAndUpdateCmd('days_since_last_recharge', $data['enriched_data']['water_treatment']['days_since_last_recharge'] );
+
+            // bla bla
+            if( isset ($data['enriched_data']['water_treatment']['total_recharges']) )
+                $this->checkAndUpdateCmd('total_recharges', $data['enriched_data']['water_treatment']['total_recharges'] );
+
+            // bla bla
+            if( isset ($data['enriched_data']['water_treatment']['regeneration_status']) )
+                $this->checkAndUpdateCmd('regeneration_status', $data['enriched_data']['water_treatment']['regeneration_status'] );
+
+            // bla bla
+            if( isset ($data['properties']['gallons_used_today']['updated_at']) )
+                $this->checkAndUpdateCmd('gallons_used_today_updated_at', $data['properties']['gallons_used_today']['updated_at'] );
+    
   }
 
    
@@ -288,23 +361,7 @@ class hydrolinkhome extends eqLogic {
 			"regen_status_enum" => array('Commande', 'action', 'select', "", 0, "GENERIC_ACTION", '', '', '1|'.__('progammer une régénération',__FILE__).';2|'.__('Régénérer maintenant',__FILE__))
     
     */
-            /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
-        $cmd = $this->getCmd(null, 'out_of_salt_estimate_days');
-        if (!is_object($cmd)) {
-            $cmd = new hydrolinkhomeCmd();
-            $cmd->setName(__('Recharger Sel', __FILE__));
-            $cmd->setLogicalId('out_of_salt_estimate_days');
-            $cmd->setType('info');
-            $cmd->setSubType('numeric');
-            $cmd->setEqLogic_id($this->getId());
-          	$cmd->setUnite('jours');
-			$cmd->setDisplay('invertBinary',0);
-            $cmd->setConfiguration('maxValue',365);
-			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
-          	$cmd->setIsHistorized(0);
-            $cmd->setIsVisible(1);
-            $cmd->save();
-        }
+
     
             /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
         $cmd = $this->getCmd(null, 'gallons_used_today');
@@ -334,7 +391,7 @@ class hydrolinkhome extends eqLogic {
             $cmd->setSubType('numeric');
             $cmd->setEqLogic_id($this->getId());
           	$cmd->setUnite('litres');
-			$cmd->setDisplay('invertBinary',0);
+			//$cmd->setDisplay('invertBinary',0);
             $cmd->setConfiguration('maxValue',1000);
 			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
           	$cmd->setIsHistorized(0);
@@ -382,14 +439,14 @@ class hydrolinkhome extends eqLogic {
         $cmd = $this->getCmd(null, '_internal_is_online');
         if (!is_object($cmd)) {
             $cmd = new hydrolinkhomeCmd();
-            $cmd->setName(__('onLine', __FILE__));
+            $cmd->setName(__('_internal_is_online', __FILE__));
             $cmd->setLogicalId('_internal_is_online');
             $cmd->setType('info');
             $cmd->setSubType('binary');
             $cmd->setEqLogic_id($this->getId());
-          	$cmd->setUnite('/10');
-			$cmd->setDisplay('invertBinary',0);
-            $cmd->setConfiguration('maxValue',4000);
+          	//$cmd->setUnite('/10');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',4000);
 			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
           	$cmd->setIsHistorized(0);
             $cmd->setIsVisible(1);
@@ -414,6 +471,228 @@ class hydrolinkhome extends eqLogic {
             $cmd->setIsVisible(1);
             $cmd->save();
         }
+
+
+    
+    
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'salt_level_percent_rounded');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT salt_level_percent_rounded', __FILE__));
+            $cmd->setLogicalId('salt_level_percent_rounded');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('%');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        }
+    
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'salt_level_percent');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT salt_level_percent', __FILE__));
+            $cmd->setLogicalId('salt_level_percent');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('%');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        } 
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'gallons_used_today_converted_value');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT gallons_used_today.converted_value', __FILE__));
+            $cmd->setLogicalId('gallons_used_today_converted_value');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('%');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        }
+    
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'avg_daily_use_gals_converted_value');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT avg_daily_use_gals_converted_value', __FILE__));
+            $cmd->setLogicalId('avg_daily_use_gals_converted_value');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('litres');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        }
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'water_treatment_total_water_used_value');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT water_treatment_total_water_used_value', __FILE__));
+            $cmd->setLogicalId('water_treatment_total_water_used_value');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('litres');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        }
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'treated_water_available_value');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT treated_water_available_value', __FILE__));
+            $cmd->setLogicalId('treated_water_available_value');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('litres');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        } 
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'current_water_flow_gpm_converted_value');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT current_water_flow_gpm_converted_value', __FILE__));
+            $cmd->setLogicalId('current_water_flow_gpm_converted_value');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	//$cmd->setUnite('%');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        } 
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'out_of_salt_estimate_days_value');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT out_of_salt_estimate_days_value', __FILE__));
+            $cmd->setLogicalId('out_of_salt_estimate_days_value');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('jours');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        } 
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'days_since_last_recharge');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT days_since_last_recharge', __FILE__));
+            $cmd->setLogicalId('days_since_last_recharge');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('litres');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        } 
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'total_recharges');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT total_recharges', __FILE__));
+            $cmd->setLogicalId('total_recharges');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	//$cmd->setUnite('%');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        } 
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'regeneration_status');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT regeneration_status', __FILE__));
+            $cmd->setLogicalId('regeneration_status');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	//$cmd->setUnite('%');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        } 
+    
+        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'gallons_used_today_updated_at');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('ZEIT gallons_used_today_updated_at', __FILE__));
+            $cmd->setLogicalId('gallons_used_today_updated_at');
+            $cmd->setType('info');
+            $cmd->setSubType('string');
+            $cmd->setEqLogic_id($this->getId());
+          	//$cmd->setUnite('%');
+			//$cmd->setDisplay('invertBinary',0);
+            //$cmd->setConfiguration('maxValue',100);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        } 
   }
 
   // Fonction exécutée automatiquement avant la suppression de l'équipement

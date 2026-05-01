@@ -2,12 +2,12 @@
   
 class api_hydrolinkhome {
 
-  	public static $bouchon = true ;
+  	public static $bouchon = false ;
       
   //* Fonction exécutée automatiquement toutes les minutes par Jeedom
   public static function getURL(){
-    	$region = config::byKey('region',__CLASS__,'com');
-    	return 'https://app.hydrolinkhome.'.$region ;
+    	$region = config::byKey('region','hydrolinkhome','com');
+    	return 'https://api.hydrolinkhome.'.$region ;
   }
   
   //* Fonction exécutée automatiquement toutes les minutes par Jeedom
@@ -16,34 +16,34 @@ class api_hydrolinkhome {
 /*"email": self.entry.data[CONF_USERNAME],
             "password": self.entry.data[CONF_PASSWORD]*/
     
-    log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
+    log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
     
     if( self::$bouchon )
       return bouchons::getBouchon( 'login') ;
   
-    	$User = config::byKey('email',__CLASS__,'');
-    	$Passwd = config::byKey('password',__CLASS__,'');
-    	$region = config::byKey('region',__CLASS__,'com');
+    	$User = config::byKey('email','hydrolinkhome','');
+    	$Passwd = config::byKey('password','hydrolinkhome','');
+    	$region = config::byKey('region','hydrolinkhome','');
     
         /// Preparation de la requete : json
         //$data = json_encode( array('email' => $User, 'password' => $Passwd, 'lang' => $Lang) ) ;
     	$data = json_encode( array('email' => $User, 'password' => $Passwd) ) ;
     
-    	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $data='.$data );
+    	log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $data='.$data );
 
         /// Parametres cUrl
         $params = array(
             CURLOPT_POST => 1,
             CURLOPT_HTTPHEADER => array(
                     'Accept : application/json, text/plain, */*',
-                    'Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
-                    'Content-Type: application/json',
-                    'Origin: '.$this->getURL() ,
-                    'Referer: '.$this->getURL().'/',
-                    'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                    'X-Requested-With: XMLHttpRequest'
+                    //'Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
+                    'Content-Type: application/json'
+                    //'Origin: '.self::getURL() ,
+                    //'Referer: '.self::getURL().'/',
+                    //'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    //'X-Requested-With: XMLHttpRequest'
             ),
-            CURLOPT_URL => $this->getURL().'/v1/auth/login',
+            CURLOPT_URL => self::getURL().'/v1/auth/login',
             CURLOPT_FRESH_CONNECT => 1,
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_FORBID_REUSE => 1,
@@ -67,9 +67,11 @@ class api_hydrolinkhome {
 
         /// Ferme la connexion
         curl_close($gizwits);
+    
+    	log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $params='.var_export( $params , true) );
 
         if( $httpcode != 200 && $httpcode != 400 ){
-            log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode.' - '.$result );
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode.' - '.$result );
             return false;
         }
         
@@ -77,12 +79,12 @@ class api_hydrolinkhome {
         $aRep = json_decode($result, true);
     
     	if( isset( $aRep['access_token'] ) ){
-          config::save('access_token'   , $aRep['access_token' ]  , __CLASS__);
-          config::save('refresh_token'  , $aRep['refresh_token']  , __CLASS__);
-          config::save('user_id'        , $aRep['user_id']        , __CLASS__);
+          config::save('access_token'   , $aRep['access_token' ]  , 'hydrolinkhome');
+          config::save('refresh_token'  , $aRep['refresh_token']  , 'hydrolinkhome');
+          config::save('user_id'        , $aRep['user_id']        , 'hydrolinkhome');
         }
     
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.':'.$result );
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.':'.$result );
         
         return true;
   }
@@ -90,29 +92,41 @@ class api_hydrolinkhome {
   //* Fonction exécutée automatiquement toutes les minutes par Jeedom
   public static function getList(){
     //https://api.hydrolinkhome.eu/v1/devices?all=false&per_page=200
-
+		log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
 
         if( self::$bouchon ){
+          	log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': MODE BOUCHON' );
       		return json_decode( bouchons::getBouchon( 'devices' ) , true) ;
         }
     	else
-          	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': PAS DE BOUCHON' );
+          	log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': PAS DE BOUCHON' );
     
         /// Preparation de la requete : json
-    	$token = config::byKey('access_token',__CLASS__,'');
-        $region = config::byKey('region',__CLASS__,'com');
-    	$data = json_encode( array('email' => $User, 'Authorization' => $token) ) ;
+    	$token = config::byKey('access_token','hydrolinkhome',null);
+        $region = config::byKey('region','hydrolinkhome',null);
+    
+    	if( empty($token) ){
+          self::Login() ;
+          $token = config::byKey('access_token','hydrolinkhome',null);
+          }
+    
+    	if( empty($token) || empty($region) ){
+          log::add('hydrolinkhome', 'error',  __METHOD__.'(ln '.__LINE__.')'.': region ou token non valorisé ($region='.$region.' - $token='.$token.')' );
+          return false ;
+          }
+    
+    	//$data = json_encode( array('email' => $User, 'Authorization' => $token) ) ;
 
         /// Parametres cUrl
         $params = array(
             //CURLOPT_POST => 1,
             CURLOPT_HTTPHEADER => array(
                     'Accept : application/json, text/plain, */*',
-                    'Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
+                    //'Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
                     'Content-Type: application/json',
-                    'Origin: '.self::getURL(),
-                    'Referer: '.self::getURL().'/',
-                    'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    //'Origin: '.self::getURL(),
+                    //'Referer: '.self::getURL().'/',
+                    //'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
               		'Authorization: Bearer '.$token
             ),
             CURLOPT_URL => self::getURL().'/v1/devices?all=false&per_page=200',
@@ -140,17 +154,17 @@ class api_hydrolinkhome {
         /// Ferme la connexion
         curl_close($gizwits);
     
-    	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $params='.var_export( $params , true) );
+    	log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $params='.var_export( $params , true) );
 
         if( $httpcode != 200 && $httpcode != 400 ){
-            log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode.' - '.$result );
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode.' - '.$result );
             return false;
         }
         
         ///Décodage de la réponse
         //$aRep = json_decode($result, true);
     
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.':'.$result );
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.':'.$result );
         
         return json_decode($result, true);
   
@@ -165,7 +179,7 @@ class api_hydrolinkhome {
       		return json_decode( bouchons::getBouchon( 'detail' , $DeviceId ) , true) ;
         }
     	else
-          	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': PAS DE BOUCHON' );
+          	log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': PAS DE BOUCHON' );
     
         /// Preparation de la requete : json
         //$data = json_encode( array('email' => $User, 'password' => $Passwd, 'lang' => $Lang) ) ;
@@ -176,12 +190,12 @@ class api_hydrolinkhome {
             //CURLOPT_POST => 1,
             CURLOPT_HTTPHEADER => array(
                     'Accept : application/json, text/plain, */*',
-                    'Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
+                    //'Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
                     'Content-Type: application/json',
-                    'Origin: '.self::getURL() ,
-                    'Referer: '.self::getURL().'/',
-                    'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                    'X-Requested-With: XMLHttpRequest',
+                    //'Origin: '.self::getURL() ,
+                    //'Referer: '.self::getURL().'/',
+                    //'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    //'X-Requested-With: XMLHttpRequest',
               		'Authorization: Bearer '.$token
             ),
             CURLOPT_URL => self::getURL().'/v1/devices/'.$DeviceId.'/live',
@@ -209,17 +223,17 @@ class api_hydrolinkhome {
         /// Ferme la connexion
         curl_close($gizwits);
     
-    	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $params='.$params );
+    	log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $params='.$params );
 
         if( $httpcode != 200 && $httpcode != 400 ){
-            log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode );
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode );
             return false;
         }
         
         ///Décodage de la réponse
         //$aRep = json_decode($result, true);
     
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.':'.$result );
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.':'.$result );
         
         return true;
   

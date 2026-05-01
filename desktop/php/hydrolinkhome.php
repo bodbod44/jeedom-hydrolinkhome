@@ -132,7 +132,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 									<sup><i class="fas fa-question-circle tooltips" title="{{Identifiant de l'appareil}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
-									<input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="deviceid" placeholder="{{Identifiant de l'appareil}}" readonly>
+									<input type="text" class="eqLogicAttr form-control" data-l1key="logicalId" placeholder="{{Identifiant de l'appareil}}" readonly>
 								</div>
 							</div>
 							<div class="form-group">
@@ -140,7 +140,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 									<sup><i class="fas fa-question-circle tooltips" title="{{Description}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
-									<textarea class="form-control eqLogicAttr form-control" data-l1key="comment"></textarea>
+									<textarea class="eqLogicAttr form-control" data-l1key="comment"></textarea>
 								</div>
 							</div>
 						</div>
@@ -162,6 +162,32 @@ $eqLogics = eqLogic::byType($plugin->getId());
 									<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="updatetime" title="{{Date de dernière mise à jour}}" style="font-size : 1em;cursor : default;"></span>
 								</div>
 							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Nom}}</label>
+								<div class="col-sm-6">
+									<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="user" title="{{Nom}}" style="font-size : 1em;cursor : default;"></span>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Localisation}}</label>
+								<div class="col-sm-6">
+									<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="location" title="{{Localisation}}" style="font-size : 1em;cursor : default;"></span>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{SSID Wifi}}</label>
+								<div class="col-sm-6">
+									<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="wifi_ssid" title="{{SSID Wifi}}" style="font-size : 1em;cursor : default;"></span>
+								</div>
+							</div>
+                            
+							<div class="form-group" style="display:none">
+								<label class="col-sm-4 control-label">{{Images}}</label>
+								<div class="col-sm-6">
+									<img class="eqLogicAttr" data-l1key="configuration" data-l2key="image_url">
+								</div>
+							</div>
+                            
 						</div>
 					</fieldset>
 				</form>
