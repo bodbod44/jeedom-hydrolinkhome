@@ -190,13 +190,22 @@ $eqLogics = eqLogic::byType($plugin->getId());
 									<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="wifi_ssid" title="{{SSID Wifi}}" style="font-size : 1em;cursor : default;"></span>
 								</div>
 							</div>
-                            
-							<div class="form-group" style="display:none">
-								<label class="col-sm-4 control-label">{{Images}}</label>
-								<div class="col-sm-6">
-									<img class="eqLogicAttr" data-l1key="configuration" data-l2key="image_url">
-								</div>
-							</div>
+                                      
+                            <!-- Champ de saisie de l'URL -->
+                            <div class="form-group" style="display:none">
+                                <label class="col-sm-4 control-label">{{URL de l'image}}</label>
+                                <div class="col-sm-6">
+                                    <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="image_url" placeholder="{{URL de l'image}}"/>
+                                </div>
+                            </div>
+
+                            <!-- Zone d'affichage de l'image -->
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{Aperçu}}</label>
+                                <div class="col-sm-6">
+                                    <img src="" id="img_device_preview" class="img-responsive" style="max-height : 250px; border: 0px solid #ddd; padding: 5px; border-radius: 5px;" onerror="this.src='plugins/hydrolinkhome/core/template/images/adoucisseur.jpg';"/>
+                                </div>
+                            </div>
                             
 						</div>
 					</fieldset>
@@ -228,6 +237,26 @@ $eqLogics = eqLogic::byType($plugin->getId());
 		</div><!-- /.tab-content -->
 	</div><!-- /.eqLogic -->
 </div><!-- /.row row-overflow -->
+
+<script>
+function printEqLogic(_eqLogic) {
+    // ... votre code existant ...
+    
+    // On récupère l'url depuis la config et on l'injecte dans le src de l'image
+    if (typeof _eqLogic.configuration.image_url !== 'undefined' && _eqLogic.configuration.image_url !== '') {
+        $('#img_device_preview').attr('src', _eqLogic.configuration.image_url);
+    } else {
+        $('#img_device_preview').attr('src', 'plugins/hydrolinkhome/core/template/images/adoucisseur.jpg');
+    }
+}
+
+$('body').off('change', '.eqLogicAttr[data-l1key=configuration][data-l2key=image_url]').on('change', '.eqLogicAttr[data-l1key=configuration][data-l2key=image_url]', function () {
+    var url = $(this).value();
+    if (url != '') {
+        $('#img_device_preview').attr('src', url);
+    }
+});
+</script>
 
 <!-- Inclusion du fichier javascript du plugin (dossier, nom_du_fichier, extension_du_fichier, id_du_plugin) -->
 <?php include_file('desktop', 'hydrolinkhome', 'js', 'hydrolinkhome'); ?>

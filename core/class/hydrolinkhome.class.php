@@ -427,7 +427,7 @@ class hydrolinkhome extends eqLogic {
             $cmd->save();
         }
     
-        /// Creation de la commande action 
+     /*   /// Creation de la commande action 
         $cmd = $this->getCmd(null, 'regen_status_enum');
         if (!is_object($cmd)) {
             $cmd = new hydrolinkhomeCmd();
@@ -444,7 +444,7 @@ class hydrolinkhome extends eqLogic {
           	//$cmd->setIsHistorized(0);
             $cmd->setIsVisible(1);
             $cmd->save();
-        }
+        }*/
     
         /// Creation de la commande info 
         $cmd = $this->getCmd(null, 'salt_level_percent_rounded');
@@ -711,8 +711,29 @@ class hydrolinkhomeCmd extends cmd {
 
     // Exécution d'une commande
     public function execute($_options = array()) {
-        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.' : Commande execute : '.$this->getEqLogic()->getName().' - '.$this->getLogicalId().' ('.$this->getId().')');  
-      log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $_options='.var_export( $_options ,true) );
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.' : Commande execute : '.$this->getEqLogic()->getName().' - '.$this->getType().' - '.$this->getLogicalId().' ('.$this->getId().')');  
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $_options='.var_export( $_options ,true) );
+      
+        if( $this->getType() == 'info'){
+
+        }
+        
+        if( $this->getType() == 'action'){
+            if( $this->getLogicalId() == 'refresh'){
+                log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': '.$this->getLogicalId() );  
+                $result = api_hydrolinkhome::getDetail( $this->getEqLogic()->getLogicalId() ) ;
+                if( $result === false ){
+                    log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.' : Execute KO : '.$this->getEqLogic()->getName().' - '.$this->getType().' - '.$this->getLogicalId().' ('.$this->getId().')');    
+                }
+            }
+            
+            if( $this->getLogicalId() == 'regen_status_enum'){
+                log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': '.$this->getLogicalId().' ('.$_options['select'].')' );  
+                //$result = api_hydrolinkhome::getDetail( $deviceId )
+            }
+        }
+        
+        
     }
 
     /*     * **********************Getteur Setteur*************************** */
