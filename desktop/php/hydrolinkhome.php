@@ -24,6 +24,16 @@ $eqLogics = eqLogic::byType($plugin->getId());
 				<br>
 				<span>{{Configuration}}</span>
 			</div>
+			<div class="cursor eqLogicAction logoSecondary" onclick="window.open('https://github.com/bodbod44/jeedom-hydrolinkhome/blob/beta/docs/fr_FR/index.md', '_blank');">
+				<i class="fas fa-book-open"></i>
+				<br>
+				<span>{{Documentation}}</span>
+			</div>
+			<div class="cursor eqLogicAction logoSecondary" onclick="window.open('https://community.jeedom.com/tag/plugin-hydrolinkhome', '_blank');">
+				<i class="fas fa-ambulance"></i>
+				<br>
+				<span>{{Assistance}}</span>
+			</div>
 		</div>
 		<legend><i class="fas fa-table"></i> {{Mes hydrolinkhomes}}</legend>
 		<?php

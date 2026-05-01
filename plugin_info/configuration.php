@@ -39,7 +39,7 @@ if (!isConnect()) {
         <sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le mot de passe du compte HydroLink Home}}"></i></sup>
       </label>
       <div class="col-md-4">
-        <input class="configKey form-control" data-l1key="password"/>
+        <input type="password" class="configKey form-control" data-l1key="password"/>
       </div>
     </div>
           
@@ -50,10 +50,25 @@ if (!isConnect()) {
       <div class="col-md-4">
         <select class="configKey form-control" data-l1key="region">
           <option value=""></option>
-          <option value="eu">EU</option>
+          <option value="eu">EU (par défaut)</option>
           <option value="com">COM</option>
         </select>
       </div>
+    </div>
+    
+    <div class="form-group" id="Freq_value">
+      <label class="col-md-4 control-label">{{Frequence de rafaichissement des informations}}
+        <sup><i class="fas fa-question-circle tooltips" title="{{Frequence de rafaichissement des informations}}"></i></sup>
+      </label>
+        <div class="col-md-4">             
+            <select class="configKey form-control" data-l1key="refresh_freq" title="Fréquence de rafaichissement des informations (10 min par défaut)" style="width:100px;">
+                <option value="0">Off</option>
+                <option value="2">2 min</option>
+                <option value="5">5 min</option>
+                <option value="5">10 min</option>
+                <option value="5">20 min</option>
+            </select>
+        </div>
     </div>
           
     <div class="form-group">
@@ -61,8 +76,8 @@ if (!isConnect()) {
         <sup><i class="fas fa-question-circle tooltips" title="{{Synchro}}"></i></sup>
       </label>
       <div class="col-md-4">
-                <a class="btn btn-info bt_login"><i id='synchydrolink' class="fa fa-refresh"></i>
-                Synchroniser les modules avec le compte HydroLink Home<span id="synchydrolink"></span>
+                <a class="btn btn-info bt_login"><i id="synchydrolink" class="fa fa-refresh"></i>
+                Synchroniser les modules avec le compte HydroLink Home<span id="synchydrolink_span"></span>
                 </a>
       </div>
     </div>
@@ -96,9 +111,17 @@ $('.bt_login').on('click',function(){
                 $.fn.showAlert({message: data.result, level: 'danger'});
                 return;
             }
-          
-          $.fn.showAlert({message: 'Synchronisation de ' + data.result + ' module(s)', level: 'info'});
-          $('#synchydrolink').append(' : ' + data.result + ' module(s)');
+            
+            $('#synchydrolink_span').empty();
+            if( typeof data.result === 'object' ){
+                ResultMessage = 'Synchronisation : ' + data.result['new'] + ' module(s) créé(s) + ' + data.result['update'] + ' module(s) actualisé(s) + ' + data.result['delete'] + ' module(s) désactivé(s)' ;
+                $.fn.showAlert({message: ResultMessage, level: 'info'});
+                $('#synchydrolink_span').append(' : ' + ResultMessage );
+            }
+            else{
+                $.fn.showAlert({message: 'Synchronisation de ' + data.result + ' module(s)', level: 'info'});
+                $('#synchydrolink_span').append(' : ' + data.result + ' module(s)');
+            }
         }
     });
 

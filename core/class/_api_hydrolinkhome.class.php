@@ -6,7 +6,7 @@ class api_hydrolinkhome {
       
   //* Fonction exécutée automatiquement toutes les minutes par Jeedom
   public static function getURL(){
-    	$region = config::byKey('region','hydrolinkhome','com');
+    	$region = config::byKey('region','hydrolinkhome','eu');
     	return 'https://api.hydrolinkhome.'.$region ;
   }
   
@@ -90,8 +90,11 @@ class api_hydrolinkhome {
   }
   
   //* Fonction exécutée automatiquement toutes les minutes par Jeedom
-  public static function getList(){
+  public static function getList( $Recurrence = 0 ){
     //https://api.hydrolinkhome.eu/v1/devices?all=false&per_page=200
+    
+    
+    
 		log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
 
         if( self::$bouchon ){
@@ -112,7 +115,7 @@ class api_hydrolinkhome {
     
     	if( empty($token) || empty($region) ){
           log::add('hydrolinkhome', 'error',  __METHOD__.'(ln '.__LINE__.')'.': region ou token non valorisé ($region='.$region.' - $token='.$token.')' );
-          return false ;
+          	return false;
           }
     
     	//$data = json_encode( array('email' => $User, 'Authorization' => $token) ) ;
@@ -156,9 +159,25 @@ class api_hydrolinkhome {
     
     	log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $params='.var_export( $params , true) );
 
-        if( $httpcode != 200 && $httpcode != 400 ){
+        if( $httpcode != 200 ){
             log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode.' - '.$result );
-            return false;
+          
+          if( $Recurrence < 1 && $httpcode == 401 ){
+                log::add('hydrolinkhome', 'debug', __METHOD__.'(ln '.__LINE__.')'.': On retente (Recurrence '.$Recurrence.')');
+            	self::Login() ;
+                
+              $aRep = self::getList( $Recurrence + 1) ;
+                if( $aRep === false ){
+                    log::add('hydrolinkhome', 'debug', __METHOD__.'(ln '.__LINE__.')'.':'.$Did.'- Nouvelle tentative KO (Recurrence '.$Recurrence.')');
+                  	log::add('hydrolinkhome', 'error', 'Erreur lors de l\'appel hydrolink home (erreur '.$httpcode.'). Vérifier vos parametres email, password et region' );
+                    return false;
+                }
+                log::add('hydrolinkhome', 'debug', __METHOD__.'(ln '.__LINE__.')'.':'.$Did.'- Nouvelle tentative OK (Recurrence '.$Recurrence.')');
+            	$result = json_encode( $aRep );
+            }
+            else
+                return false;
+          
         }
         
         ///Décodage de la réponse
