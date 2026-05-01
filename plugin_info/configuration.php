@@ -35,8 +35,8 @@ if (!isConnect()) {
     </div>
           
     <div class="form-group">
-      <label class="col-md-4 control-label">{{password}}
-        <sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le password}}"></i></sup>
+      <label class="col-md-4 control-label">{{Mot de passe}}
+        <sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le mot de passe du compte HydroLink Home}}"></i></sup>
       </label>
       <div class="col-md-4">
         <input class="configKey form-control" data-l1key="password"/>
@@ -44,25 +44,25 @@ if (!isConnect()) {
     </div>
           
     <div class="form-group">
-      <label class="col-md-4 control-label">{{Global param 3}}
-        <sup><i class="fas fa-question-circle tooltips" title="{{Sélectionnez du paramètre 3 du plugin}}"></i></sup>
+      <label class="col-md-4 control-label">{{Région}}
+        <sup><i class="fas fa-question-circle tooltips" title="{{Sélectionnez la région (.eu/.com)}}"></i></sup>
       </label>
       <div class="col-md-4">
-        <select class="configKey form-control" data-l1key="param3">
+        <select class="configKey form-control" data-l1key="region">
           <option value=""></option>
-          <option value="value1">value1</option>
-          <option value="value2">value2</option>
+          <option value="eu">EU</option>
+          <option value="com">COM</option>
         </select>
       </div>
     </div>
           
     <div class="form-group">
-      <label class="col-md-4 control-label">{{Global param 3}}
+      <label class="col-md-4 control-label">{{Synchronisation}}
         <sup><i class="fas fa-question-circle tooltips" title="{{Synchro}}"></i></sup>
       </label>
       <div class="col-md-4">
                 <a class="btn btn-info bt_login"><i id='synchydrolink' class="fa fa-refresh"></i>
-                Synchroniser les modules avec le compte Heatzy<span id="synchydrolink"></span>
+                Synchroniser les modules avec le compte HydroLink Home<span id="synchydrolink"></span>
                 </a>
       </div>
     </div>

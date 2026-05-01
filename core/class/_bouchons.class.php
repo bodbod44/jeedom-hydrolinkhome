@@ -2,7 +2,6 @@
   
 class bouchons {
      /* @brief Fonction qui permet de synchroniser
-     *        les modules heatzy
      *        
      * @return false en cas d'erreur le nombre de modules synchroniser       
      */

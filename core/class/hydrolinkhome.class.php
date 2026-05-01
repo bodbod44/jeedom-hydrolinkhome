@@ -20,15 +20,18 @@ require_once __DIR__  . '/../../../../core/php/core.inc.php';
 
 $s = require_once('_outils.class.php');
 if( $s != 1 ) 
-	log::add('heatzy', 'error', __METHOD__.'(ln '.__LINE__.')'.' : error require_once _outils.class.php ='.$s);
+	log::add('hydrolinkhome', 'error', __METHOD__.'(ln '.__LINE__.')'.' : error require_once _outils.class.php ='.$s);
 
 $s = require_once('_bouchons.class.php');
 if( $s != 1 ) 
-	log::add('heatzy', 'error', __METHOD__.'(ln '.__LINE__.')'.' : error require_once _bouchons.class.php='.$s);
+	log::add('hydrolinkhome', 'error', __METHOD__.'(ln '.__LINE__.')'.' : error require_once _bouchons.class.php='.$s);
+
+$s = require_once('_api_hydrolinkhome.class.php');
+if( $s != 1 ) 
+	log::add('hydrolinkhome', 'error', __METHOD__.'(ln '.__LINE__.')'.' : error require_once _api_hydrolinkhome.class.php='.$s);
 
 class hydrolinkhome extends eqLogic {
   /*     * *************************Attributs****************************** */
-	public static $bouchon = true ;
   /*
   * Permet de définir les possibilités de personnalisation du widget (en cas d'utilisation de la fonction 'toHtml' par exemple)
   * Tableau multidimensionnel - exemple: array('custom' => true, 'custom::layout' => false)
@@ -50,14 +53,14 @@ class hydrolinkhome extends eqLogic {
     
     	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
     
-    	self::Login() ;
-    	$result = self::getList() ;
+    	api_hydrolinkhome::Login() ;
+    	$result = api_hydrolinkhome::getList() ;
     	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': test='.var_export( $result , true) );
   }
   
   public static function synchronise(){
 
-    	$result = self::getList() ;
+    	$result = api_hydrolinkhome::getList() ;
     	
     	if( $result != false ){
           log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $result[total]='.$result['total'] );
@@ -66,251 +69,112 @@ class hydrolinkhome extends eqLogic {
             else{
               foreach ($result['data'] as $device) {
                 log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $device='.$device['id'] );
-                self::create( $device['id'] , $device ) ;
+                
+                $eqLogic = eqLogic::byLogicalId( $device['id'] , 'hydrolinkhome', false) ;
+                if( ! is_object( $eqLogic ) ){
+                  $eqLogic = self::createDevice( $device['id'] , $device ) ;
+                  $return['new']++ ;
+                }
+                    
+                $eqLogic->setLogicalId( $deviceId );            
+                $eqLogic->setEqType_name('hydrolinkhome');
+                $eqLogic->setName( $deviceId );
+                $eqLogic->setConfiguration('deviceid',$deviceId );
+                $eqLogic->setConfiguration('system_type_display',$device['system_type_display'] );
+                $eqLogic->setConfiguration('image_url', $device['image_url'] );
+
+                $eqLogic->save();
+
+                // Maj des données
+                $eqLogic->updateDeviceCmd( $deviceId , $device['properties'] ) ;
+                
               }
             }
         }
+    
+    	return $return['new'] ;
   }
   
-  public static function create( $deviceId , $data ){
+  public static function createDevice( $deviceId , $data ){
             $eqLogic = eqLogic::byLogicalId( $deviceId , 'hydrolinkhome', false);
             if (! is_object($eqLogic)) {   /// Creation des devices inexistants
+              	// RISQUE si logcid <>n mais name identique
                 $eqLogic = new hydrolinkhome();
                 $eqLogic->setIsVisible(1);
-                
-                //$Nb_Add++ ;
-                $return['new']++ ;
+                $eqLogic->setIsEnable(1);
             }
             else{
-              $return['update']++ ;
               log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Device '.$deviceId.' deja créé' );
             }
-            
-            $eqLogic->setEqType_name('hydrolinkhome');
-    		$eqLogic->setName( $deviceId );
-            $eqLogic->setLogicalId( $deviceId );
-    		$eqLogic->setIsEnable(1);
-    		$eqLogic->save();
-  }
+
     
+    return $eqLogic ;
+  }
   
-  //* Fonction exécutée automatiquement toutes les minutes par Jeedom
-  public static function Login(){
+  public function updateDeviceCmd( $deviceId , $data = null ){
+    
+              // bla bla
+            if( $data == null ){
+                $data = api_hydrolinkhome::getDetail( $deviceId ) ;
+              	$properties = $data['device']['properties'] ;
+            }
+    		else{
+              $properties = $data['device']['properties'] ;
+    		}
+    
+    if( !isset( _internal_is_online ) ){
+      log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': json invalide' );
+      return false ;
+    }
+      
+    
+    		log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $data '.$data['device']['system_type'] );
+    
+    
+      /*          return array(   "out_of_salt_estimate_days" => array('Recharger Sel', 'info', 'numeric', "jours", 0, "GENERIC_INFO", 'jauge', 'jauge', 'A',1,365),
+			"gallons_used_today" => array('Ce jour', 'info', 'numeric', "litres", 0, "GENERIC_INFO", 'jauge', 'jauge', 'B',3.785,1000),
+                        "avg_daily_use_gals" => array('Moyenne', 'info', 'numeric', "litres", 0, "GENERIC_INFO", 'jauge', 'jauge', 'C',3.785,1000),
+			"salt_level_tenths" => array('Niveau Sel', 'info', 'numeric', "/10", 0, "GENERIC_INFO", 'jauge', 'jauge', 'D',0.1,10),
+			"treated_water_avail_gals" => array('Eau Disponible','info','numeric',"litres",0,"GENERIC_INFO",'jauge','jauge','E',3.785,4000),
+			"connection_status" => array('Connection','info','binary','',1,"GENERIC_INFO",'badge','badge','F',0,0),
+			"regen_status_enum" => array('Commande', 'action', 'select', "", 0, "GENERIC_ACTION", '', '', '1|'.__('progammer une régénération',__FILE__).';2|'.__('Régénérer maintenant',__FILE__))
+    */
+    
+        
+    
+    
+            // bla bla
+            if( isset ($properties['out_of_salt_estimate_days']['value']) )
+                $this->checkAndUpdateCmd('out_of_salt_estimate_days', $properties['out_of_salt_estimate_days']['value'] );
+    
+            // bla bla
+            if( isset ($properties['gallons_used_today']['value']) )
+                $this->checkAndUpdateCmd('gallons_used_today', $properties['gallons_used_today']['value'] * 3.785 );
+    
+            // bla bla
+            if( isset ($properties['avg_daily_use_gals']['value']) )
+                $this->checkAndUpdateCmd('avg_daily_use_gals', $properties['avg_daily_use_gals']['value'] * 3.785 );
+    
+            // bla bla
+            if( isset ($properties['salt_level_tenths']['value']) )
+                $this->checkAndUpdateCmd('salt_level_tenths', $properties['salt_level_tenths']['value'] * 0.1 );
+    
+            // bla bla
+            if( isset ($properties['treated_water_avail_gals']['value']) )
+                $this->checkAndUpdateCmd('treated_water_avail_gals', $properties['treated_water_avail_gals']['value'] * 3.785 );
+    
+            // bla bla
+            if( isset ($properties['_internal_is_online']['value']) )
+                $this->checkAndUpdateCmd('_internal_is_online', $properties['_internal_is_online']['value'] );
+    
+    //image_url
+  }
+
    
 /*"email": self.entry.data[CONF_USERNAME],
             "password": self.entry.data[CONF_PASSWORD]*/
     
-    log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
-    
-    if( self::$bouchon )
-      return bouchons::getBouchon( 'login') ;
   
-    	$User = config::byKey('email',__CLASS__,'');
-    	$Passwd = config::byKey('password',__CLASS__,'');
-    
-        /// Preparation de la requete : json
-        //$data = json_encode( array('email' => $User, 'password' => $Passwd, 'lang' => $Lang) ) ;
-    	$data = json_encode( array('email' => $User, 'password' => $Passwd) ) ;
-    
-    	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $data='.$data );
-
-        /// Parametres cUrl
-        $params = array(
-            CURLOPT_POST => 1,
-            CURLOPT_HTTPHEADER => array(
-                    'Accept : application/json, text/plain, */*',
-                    'Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
-                    'Content-Type: application/json',
-                    'Origin: https://app.hydrolinkhome.eu',
-                    'Referer: https://app.hydrolinkhome.eu/',
-                    'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                    'X-Requested-With: XMLHttpRequest'
-            ),
-            CURLOPT_URL => 'https://api.hydrolinkhome.com/v1/auth/login',
-            CURLOPT_FRESH_CONNECT => 1,
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_FORBID_REUSE => 1,
-            CURLOPT_TIMEOUT => 10,
-            CURLOPT_POSTFIELDS => $data
-        );
-
-        /// Initialisation de la ressources curl
-        $gizwits = curl_init();
-        if ($gizwits === false)
-            return false;
-             
-        /// Configuration des options
-        curl_setopt_array($gizwits, $params);
-        
-        /// Excute la requete
-        $result = curl_exec($gizwits);
-
-        /// Test le code retour http
-        $httpcode = curl_getinfo($gizwits, CURLINFO_HTTP_CODE);
-
-        /// Ferme la connexion
-        curl_close($gizwits);
-
-        if( $httpcode != 200 && $httpcode != 400 ){
-            log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode.' - '.$result );
-            return false;
-        }
-        
-        ///Décodage de la réponse
-        $aRep = json_decode($result, true);
-    
-    	if( isset( $aRep['access_token'] ) ){
-          config::save('access_token'   , $aRep['access_token' ]  , __CLASS__);
-          config::save('refresh_token'  , $aRep['refresh_token']  , __CLASS__);
-          config::save('user_id'        , $aRep['user_id']        , __CLASS__);
-        }
-    
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.':'.$result );
-        
-        return true;
-  }
-  
-  //* Fonction exécutée automatiquement toutes les minutes par Jeedom
-  public static function getList(){
-    //https://api.hydrolinkhome.eu/v1/devices?all=false&per_page=200
-
-        
-    
-    	$User = "" ;
-    	$Passwd = '' ;
-    	$Lang = 'en' ;
-    	$token = '' ;
-    
-        /// Preparation de la requete : json
-        //$data = json_encode( array('email' => $User, 'password' => $Passwd, 'lang' => $Lang) ) ;
-    	$data = json_encode( array('email' => $User, 'Authorization' => $token) ) ;
-    
-        if( self::$bouchon )
-      		return json_decode( bouchons::getBouchon( 'devices' ) , true) ;
-    	else
-          	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': PAS DE BOUCHON' );
-
-        /// Parametres cUrl
-        $params = array(
-            //CURLOPT_POST => 1,
-            CURLOPT_HTTPHEADER => array(
-                    'Accept : application/json, text/plain, */*',
-                    'Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
-                    'Content-Type: application/json',
-                    'Origin: https://app.hydrolinkhome.com',
-                    'Referer: https://app.hydrolinkhome.com/',
-                    'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-              		'Authorization: Bearer '.config::byKey('access_token',__CLASS__,'')
-            ),
-            CURLOPT_URL => 'https://api.hydrolinkhome.com/v1/devices?all=false&per_page=200',
-            CURLOPT_FRESH_CONNECT => 1,
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_FORBID_REUSE => 1,
-            CURLOPT_TIMEOUT => 10
-            //CURLOPT_POSTFIELDS => $data
-        );
-
-        /// Initialisation de la ressources curl
-        $gizwits = curl_init();
-        if ($gizwits === false)
-            return false;
-             
-        /// Configuration des options
-        curl_setopt_array($gizwits, $params);
-        
-        /// Excute la requete
-        $result = curl_exec($gizwits);
-
-        /// Test le code retour http
-        $httpcode = curl_getinfo($gizwits, CURLINFO_HTTP_CODE);
-
-        /// Ferme la connexion
-        curl_close($gizwits);
-    
-    	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $params='.var_export( $params , true) );
-
-        if( $httpcode != 200 && $httpcode != 400 ){
-            log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode.' - '.$result );
-            return false;
-        }
-        
-        ///Décodage de la réponse
-        //$aRep = json_decode($result, true);
-    
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.':'.$result );
-        
-        return json_decode($result, true);
-  
-  }
-          
-//* Fonction exécutée automatiquement toutes les minutes par Jeedom
-  public static function getDetail(){
-    //https://api.hydrolinkhome.eu/v1/devices/{self.device_id}/live"
-
-        
-    
-    	$User = "" ;
-    	$Passwd = '' ;
-    	$Lang = 'en' ;
-    	$token = '' ;
-    
-        /// Preparation de la requete : json
-        //$data = json_encode( array('email' => $User, 'password' => $Passwd, 'lang' => $Lang) ) ;
-    	$data = json_encode( array('email' => $User, 'Authorization' => $token) ) ;
-
-        /// Parametres cUrl
-        $params = array(
-            //CURLOPT_POST => 1,
-            CURLOPT_HTTPHEADER => array(
-                    'Accept : application/json, text/plain, */*',
-                    'Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
-                    'Content-Type: application/json',
-                    'Origin: https://app.hydrolinkhome.eu',
-                    'Referer: https://app.hydrolinkhome.eu/',
-                    'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                    'X-Requested-With: XMLHttpRequest',
-              		'Authorization: Bearer '.$token
-            ),
-            CURLOPT_URL => 'https://api.hydrolinkhome.eu/v1/devices?all=false&per_page=200',
-            CURLOPT_FRESH_CONNECT => 1,
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_FORBID_REUSE => 1,
-            CURLOPT_TIMEOUT => 10,
-            CURLOPT_POSTFIELDS => $data
-        );
-
-        /// Initialisation de la ressources curl
-        $gizwits = curl_init();
-        if ($gizwits === false)
-            return false;
-             
-        /// Configuration des options
-        curl_setopt_array($gizwits, $params);
-        
-        /// Excute la requete
-        $result = curl_exec($gizwits);
-
-        /// Test le code retour http
-        $httpcode = curl_getinfo($gizwits, CURLINFO_HTTP_CODE);
-
-        /// Ferme la connexion
-        curl_close($gizwits);
-    
-    	log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $params='.$params );
-
-        if( $httpcode != 200 && $httpcode != 400 ){
-            log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode );
-            return false;
-        }
-        
-        ///Décodage de la réponse
-        //$aRep = json_decode($result, true);
-    
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.':'.$result );
-        
-        return true;
-  
-  }
   
   
   /*
@@ -402,7 +266,7 @@ class hydrolinkhome extends eqLogic {
         /// Creation de la commande de rafraichissement
         $refresh = $this->getCmd(null, 'refresh');
         if (!is_object($refresh)) {
-            $refresh = new heatzyCmd();
+            $refresh = new hydrolinkhomeCmd();
             $refresh->setName(__('Rafraichir', __FILE__));
             $refresh->setLogicalId('refresh');
             $refresh->setType('action');
@@ -413,46 +277,142 @@ class hydrolinkhome extends eqLogic {
             $refresh->save();
         }
     
-	        /// Creation de la commande info etatprog binaire
-	        $etat = $this->getCmd(null, 'etatprog');
-	        if (!is_object($etat)) {
-	            $etat = new heatzyCmd();
-	            $etat->setName(__('Etat programmation', __FILE__));
-	            $etat->setLogicalId('etatprog');
-	            $etat->setType('info');
-	            $etat->setSubType('binary');
-	            $etat->setEqLogic_id($this->getId());
-	            $etat->setIsHistorized(0);
-	            $etat->setIsVisible(1);
-	            $etat->save();
-	        }
     
-        /// Creation de la commande info Etat numeric
-        $etat = $this->getCmd(null, 'Etat');
-        if (!is_object($etat)) {
-            $etat = new heatzyCmd();
-            $etat->setName(__('Etat', __FILE__));
-            $etat->setLogicalId('etat');
-            $etat->setType('info');
-            $etat->setSubType('numeric');
-            $etat->setEqLogic_id($this->getId());
-            $etat->setIsHistorized(0);
-            $etat->setIsVisible(1);
-            $etat->save();
+    /*
+            return array(   "out_of_salt_estimate_days" => array('Recharger Sel', 'info', 'numeric', "jours", 0, "GENERIC_INFO", 'jauge', 'jauge', 'A',1,365),
+			"gallons_used_today" => array('Ce jour', 'info', 'numeric', "litres", 0, "GENERIC_INFO", 'jauge', 'jauge', 'B',3.785,1000),
+                        "avg_daily_use_gals" => array('Moyenne', 'info', 'numeric', "litres", 0, "GENERIC_INFO", 'jauge', 'jauge', 'C',3.785,1000),
+			"salt_level_tenths" => array('Niveau Sel', 'info', 'numeric', "/10", 0, "GENERIC_INFO", 'jauge', 'jauge', 'D',0.1,10),
+			"treated_water_avail_gals" => array('Eau Disponible','info','numeric',"litres",0,"GENERIC_INFO",'jauge','jauge','E',3.785,4000),
+			"connection_status" => array('Connection','info','binary','',1,"GENERIC_INFO",'badge','badge','F',0,0),
+			"regen_status_enum" => array('Commande', 'action', 'select', "", 0, "GENERIC_ACTION", '', '', '1|'.__('progammer une régénération',__FILE__).';2|'.__('Régénérer maintenant',__FILE__))
+    
+    */
+            /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'out_of_salt_estimate_days');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('Recharger Sel', __FILE__));
+            $cmd->setLogicalId('out_of_salt_estimate_days');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('jours');
+			$cmd->setDisplay('invertBinary',0);
+            $cmd->setConfiguration('maxValue',365);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
         }
     
-        /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
-        $mode = $this->getCmd(null, 'mode');
-        if (!is_object($mode)) {
-            $mode = new heatzyCmd();
-            $mode->setName(__('Mode', __FILE__));
-            $mode->setLogicalId('mode');
-            $mode->setType('info');
-            $mode->setSubType('string');
-            $mode->setEqLogic_id($this->getId());
-            $mode->setIsHistorized(0);
-            $mode->setIsVisible(1);
-            $mode->save();
+            /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'gallons_used_today');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('Ce jour', __FILE__));
+            $cmd->setLogicalId('gallons_used_today');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('litres');
+			$cmd->setDisplay('invertBinary',0);
+            $cmd->setConfiguration('maxValue',1000);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        }
+    
+            /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'avg_daily_use_gals');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('Moyenne', __FILE__));
+            $cmd->setLogicalId('avg_daily_use_gals');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('litres');
+			$cmd->setDisplay('invertBinary',0);
+            $cmd->setConfiguration('maxValue',1000);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        }
+    
+            /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'salt_level_tenths');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('Niveau Sel', __FILE__));
+            $cmd->setLogicalId('salt_level_tenths');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('/10');
+			$cmd->setDisplay('invertBinary',0);
+            $cmd->setConfiguration('maxValue',10);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        }
+    
+            /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'treated_water_avail_gals');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('Eau Disponible', __FILE__));
+            $cmd->setLogicalId('treated_water_avail_gals');
+            $cmd->setType('info');
+            $cmd->setSubType('numeric');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('litres');
+			$cmd->setDisplay('invertBinary',0);
+            $cmd->setConfiguration('maxValue',4000);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        }
+    
+            /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, '_internal_is_online');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('onLine', __FILE__));
+            $cmd->setLogicalId('_internal_is_online');
+            $cmd->setType('info');
+            $cmd->setSubType('binary');
+            $cmd->setEqLogic_id($this->getId());
+          	$cmd->setUnite('/10');
+			$cmd->setDisplay('invertBinary',0);
+            $cmd->setConfiguration('maxValue',4000);
+			$cmd->setDisplay('generic_type', 'GENERIC_INFO');
+          	$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
+        }
+    
+            /// Creation de la commande info mode (correspond à l'état sous forme d'une chaine de carcateres)
+        $cmd = $this->getCmd(null, 'regen_status_enum');
+        if (!is_object($cmd)) {
+            $cmd = new hydrolinkhomeCmd();
+            $cmd->setName(__('Regénérer', __FILE__));
+            $cmd->setLogicalId('regen_status_enum');
+            $cmd->setType('action');
+            $cmd->setSubType('select');
+            $cmd->setEqLogic_id($this->getId());
+          	//$cmd->setUnite('/10');
+			//$cmd->setDisplay('invertBinary',1);
+            //$cmd->setConfiguration('maxValue',4000);
+			$cmd->setDisplay('generic_type', 'GENERIC_ACTION');
+          	$cmd->setConfiguration('listValue', '1|'.__('progammer une régénération',__FILE__).';2|'.__('Régénérer maintenant',__FILE__) );
+          	//$cmd->setIsHistorized(0);
+            $cmd->setIsVisible(1);
+            $cmd->save();
         }
   }
 
