@@ -203,7 +203,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">{{Aperçu}}</label>
                                 <div class="col-sm-6">
-                                    <img src="" id="img_device_preview" class="img-responsive" style="max-height : 250px; border: 0px solid #ddd; padding: 5px; border-radius: 5px;" onerror="this.src='plugins/hydrolinkhome/core/template/images/adoucisseur.jpg';"/>
+                                    <img src="" id="img_device_preview" class="img-responsive" style="max-height : 250px; border: 0px solid #ddd; padding: 5px; border-radius: 5px;" onerror="this.src='plugins/hydrolinkhome/core/template/images/error.jpg';"/>
                                 </div>
                             </div>
                             
