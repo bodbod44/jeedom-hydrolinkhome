@@ -2,6 +2,6 @@
 
 Ce plugin sert à récupérer les données des adoucisseurs connectés Hydrolink.
 
-![parametres](/chemin/access/parametres.png "parametres")
+![parametres](images/parametres.png "parametres")
 
-![widget](/chemin/access/widget.png "widget")
+![widget](images/widget.png "widget")
