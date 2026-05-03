@@ -14,6 +14,11 @@
 * along with Jeedom. If not, see <http://www.gnu.org/licenses/>.
 */
 
+$('#bt_debugHydrolinkhome').on('click', function () {
+  $('#md_modal').dialog({title: "{{Debug}}"});
+  $('#md_modal').load('index.php?v=d&plugin=hydrolinkhome&modal=debug').dialog('open');
+});
+
 /* Permet la réorganisation des commandes dans l'équipement */
 $("#table_cmd").sortable({
   axis: "y",

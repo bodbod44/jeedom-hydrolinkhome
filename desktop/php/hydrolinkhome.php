@@ -34,6 +34,12 @@ $eqLogics = eqLogic::byType($plugin->getId());
 				<br>
 				<span>{{Assistance}}</span>
 			</div>
+			<div class="cursor eqLogicAction logoSecondary" id="bt_debugHydrolinkhome" style="display:<?php if(log::getLogLevel('hydrolinkhome') == 100) echo 'display' ; else echo 'none' ; ?>">
+				<i class="fa fa-search-location"></i>
+				<br>
+				<span>{{Debug}}</span>
+			</div>
+			
 		</div>
 		<legend><i class="fas fa-table"></i> {{Mes hydrolinkhomes}}</legend>
 		<?php
