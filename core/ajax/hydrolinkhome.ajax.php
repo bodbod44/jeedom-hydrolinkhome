@@ -40,7 +40,7 @@ try {
 	}
 
   	if (init('action') == 'synchronise') {
-		ajax::success( hydrolinkhome::synchronise() );
+		ajax::success( hydrolinkhome::synchronise( true ) );
 	}
 
 

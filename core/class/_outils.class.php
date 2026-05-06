@@ -2,7 +2,7 @@
   
 class outils {
 
-    public static function LireJSON( $json_name ) {
+    public static function LireJSON( $json_name , $formatTab = false ) {
       	log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.') '.__DIR__.'/'.$json_name ) ;
         $json = file_get_contents(__DIR__.'/'.$json_name) ;
         if( $json ) {
@@ -18,6 +18,5 @@ class outils {
         }
     }
 
-  
   
 } // Fin class bouchons

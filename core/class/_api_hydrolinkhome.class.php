@@ -257,7 +257,7 @@ class api_hydrolinkhome {
         /// Ferme la connexion
         curl_close($hydrolinkHandle);
     
-        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $params='.$params );
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $params='.var_export( $params , true ) );
 
         if( $httpcode != 200 && $httpcode != 400 ){
             log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': erreur http '.$httpcode );

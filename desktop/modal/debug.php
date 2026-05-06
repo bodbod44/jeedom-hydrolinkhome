@@ -39,6 +39,6 @@ foreach ($eqLogics as $eqLogic) {
 
 echo '<h3>hydrolinkhome getList (json)</h3>';
 $result = api_hydrolinkhome::getList() ;
-echo '<span class="label label-info" style="font-size:1em; cursor : default; white-space: normal;">'.json_encode( $result ).'</span>';
+echo '<span class="label label-info" style="font-size:1em; cursor : default; white-space: normal;">'.json_encode( $result, JSON_PRETTY_PRINT ).'</span>';
 
 ?>

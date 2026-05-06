@@ -51,19 +51,19 @@ class hydrolinkhome extends eqLogic {
 
         //https://github.com/Roeli1996/ha-ecowater-hydrolink/blob/5ffbdd550d477a2a465dff33f7c0d0ef7126f40f/custom_components/ecowater_hydrolink_custom/const.py
 
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
 
         api_hydrolinkhome::Login() ;
         $result = api_hydrolinkhome::getList() ;
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': test='.var_export( $result , true) );
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': test='.var_export( $result , true) );
     }
   
     //* Fonction de synchronisation
     //* Déclencher manuellement et toutes les x minutes
     //* Elle appelle l'api pour ramener tous les appareils. Elle créée l'appereil si non existant
     //* Elle met à jour les commandes
-    public static function synchronise(){
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
+    public static function synchronise( $manuel = false ){
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': ' );
 
         $result = api_hydrolinkhome::getList() ;
 
@@ -72,23 +72,25 @@ class hydrolinkhome extends eqLogic {
         $return['delete'] = 0 ;
 
         if( $result != false ){
-            log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $result[total]='.$result['total'] );
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $result[total]='.$result['total'] );
             if( $result['total'] == 0)
-                log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Pas de devices trouves' );
+                log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Pas de devices trouves' );
             else{
                 foreach ($result['data'] as $device) {
-                    log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $device='.$device['id'] );
+                    log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $device='.$device['id'].'-'.$device['image_url'] );
+                  	//log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $device='.var_export( $device ,true ) );
+                  //break ;
                     $eqLogic = eqLogic::byLogicalId( $device['id'] , 'hydrolinkhome', false) ;
                     if( ! is_object( $eqLogic ) ){
-                        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Je vais créer le module' );
+                        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Je vais créer le module' );
                         $eqLogic = self::createDevice( $device['id'] ) ;
                         $return['new']++ ;
                     }
                     else{
-                        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Module '.$device['id'].' présent' );
+                        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Module '.$device['id'].' présent' );
                         $return['update']++ ;
                     }
-
+                    
                     $eqLogic->setName( $device['thing_name'] );
 
                     $eqLogic->setConfiguration('system_type_display',$device['system_type_display'] );
@@ -101,8 +103,12 @@ class hydrolinkhome extends eqLogic {
 
                     $eqLogic->save();
 
+                    if( $manuel )
+                        $eqLogic->CreateCmds( $device['id'] , $device ) ;
+                  
                     // Maj des données
-                    $eqLogic->updateDeviceCmd( $device['id'] , $device ) ;
+                    //$eqLogic->updateDeviceCmd( $device['id'] , $device ) ;
+                    $eqLogic->updateDeviceCmd( $device ) ;
                 } // for
             } // result == 0
         }
@@ -113,7 +119,7 @@ class hydrolinkhome extends eqLogic {
     //* Fonction de création des nouveaux appareils
     //* Appellée à chaque synchro
     public static function createDevice( $deviceId ){
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $device='.$deviceId );
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $device='.$deviceId );
         $eqLogic = eqLogic::byLogicalId( $deviceId , 'hydrolinkhome', false);
         if (! is_object($eqLogic)) {   /// Creation des devices inexistants
             // RISQUE si logcid <>n mais name identique
@@ -125,16 +131,177 @@ class hydrolinkhome extends eqLogic {
             $eqLogic->setIsEnable(1);
             $eqLogic->setCategory('heating', 1);
             $eqLogic->save();
-            log::add('heatzy', 'info', '1 nouveau module HydroLink Home ajouté ('.$deviceId.')');
+            log::add('hydrolinkhome', 'info', '1 nouveau module HydroLink Home ajouté ('.$deviceId.')');
         }
         else{
-            log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Device '.$deviceId.' deja créé' );
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Device '.$deviceId.' deja créé' );
         }
         return $eqLogic ;
     }
+    
+    /**
+     * @brief Fonction qui permet de créer une commande dont le nom logique est passé en parametre
+     */
+//class hydrolinkhome extends eqLogic
+    public function CreateCmds( $deviceId , $data ) { 
+        $json = file_get_contents(__DIR__.'/_Commands.json');
+        if ( $json === false ){
+            log::add('hydrolinkhome', 'error',  __METHOD__.'(ln '.__LINE__.'): JSON _Commands.json non trouvé' );
+            return false ;
+        }
+      
+      log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): $id = '.$data['id'] );
+        
+        // On parcours tous les commandes du json
+        $tab_cmds = json_decode($json, true);
+        if( $tab_cmds === false ) return false ;
+        foreach ( $tab_cmds as $commande) {
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): $commande = '.$commande['Name'].' - '.$commande['LogicalId'] );
+            //$val = self::getJSONElementByName( $commande['Config_Param2'] , $data ) ;
+            $this->CreateCmd( $commande['LogicalId'] ) ;
+        } //foreach
+      
+    }    
+  
+//class hydrolinkhome extends eqLogic
+    public static function getJSONElementByName( $element , $data ) { 
+        /* Methode avec eval mais plus dangereuse
+        $val = false ;
+        eval('$val = $data'.$element.';') ;
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): $eval='.'$val = $data'.$element.';' );
+        return $val ;
+        */
+      
+        // ******************** verifier commande refresh ********************
+      
+      log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): element='.$element );
+      
+        if( str_starts_with( $element , '[' ) && str_ends_with( $element , ']' )  ){  // ['xxx']['xxx']['xxx']
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): avec [][]' );
+            $element = ltrim( $element , '[\'' ) ;
+            $element = ltrim( $element , '[' ) ;
+            $element = rtrim( $element , '\']' ) ;
+            $element = rtrim( $element , ']' ) ;
+            $element = str_replace( '\'][\'' , '|' , $element ) ;
+            $element = str_replace( '][' , '|' , $element ) ;
+            $tab_el = explode( '|' , $element ) ;
+        }
+        else{    // xxx.xxx.xxx
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): avec ...' );
+            $tab_el = explode( '.' , $element ) ;
+        }
+      
+        $val = $data ;
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): var_export='.var_export( $tab_el , true) );
+        foreach( $tab_el as $el ){
+            if( !isset( $val[ $el ] ) ){
+                $val = 'mon_element_json_non_trouve' ;
+                log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): el='.$el.' NON trouve' );
+            }
+            else
+                log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): el='.$el.' trouve' );
+            $val = $val[ $el ] ;
+        }
+        return $val ;
+      
+    }    
+    
+    /**
+     * @brief Fonction qui permet de créer une commande dont le nom logique est passé en parametre
+     */
+//class hydrolinkhome extends eqLogic
+    public function CreateCmd( $commande = '' , $MajOrder = false , $MajName = false ) {  
+      
+        if( $commande == '' Or $commande == null){
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Commande vide' );
+            return false ;
+        }
+      
+        $json = file_get_contents(__DIR__.'/_Commands.json');
+        if ( $json === false ){
+            log::add('hydrolinkhome', 'error',  __METHOD__.'(ln '.__LINE__.')'.': JSON _Commands.json non trouvé' );
+            return false ;
+        }
+      
+        $tab_cmds = json_decode($json, true);
+        if( $tab_cmds === false ) return false ;
+
+        //log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Recherche de la commande '.$commande.'...' );
+        $cmd = $this->getCmd( null, $tab_cmds[$commande]['LogicalId'] );
+        if (!is_object($cmd)) {
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Commande '.$commande.' non trouvé. On va créer' );
+            $cmd = new hydrolinkhomeCmd();
+
+            $cmd->setLogicalId( $tab_cmds[$commande]['LogicalId'] );
+            $cmd->setName(  __( $tab_cmds[$commande]['Name'] , __FILE__));
+            $cmd->setOrder(     $tab_cmds[$commande]['Order'] );
+            $cmd->setType(      $tab_cmds[$commande]['Type'] );
+            $cmd->setSubType(   $tab_cmds[$commande]['SubType'] );
+
+            if($tab_cmds[$commande]['Unite']                   !== null) $cmd->setUnite( $tab_cmds[$commande]['Unite'] );
+            
+            if($tab_cmds[$commande]['Config_infoName']         !== null) $cmd->setConfiguration('infoName'   , $tab_cmds[$commande]['Config_infoName']   );
+            if($tab_cmds[$commande]['Config_value']            !== null) $cmd->setConfiguration('value'      , $tab_cmds[$commande]['Config_value']      );
+            if($tab_cmds[$commande]['Config_minValue']         !== null) $cmd->setConfiguration('minValue'   , $tab_cmds[$commande]['Config_minValue']   );
+            if($tab_cmds[$commande]['Config_maxValue']         !== null) $cmd->setConfiguration('maxValue'   , $tab_cmds[$commande]['Config_maxValue']   );
+            if($tab_cmds[$commande]['Config_listValue']        !== null) $cmd->setConfiguration('listValue'  , $tab_cmds[$commande]['Config_listValue']  );
+            if($tab_cmds[$commande]['Config_JsonElement']      !== null) $cmd->setConfiguration('JsonElement', $tab_cmds[$commande]['Config_JsonElement']);
+            //if($tab_cmds[$commande]['Config_Param2']           !== null) $cmd->setConfiguration('Param2'     , $tab_cmds[$commande]['Config_Param2']     );
+            //if($tab_cmds[$commande]['Config_Param3']           !== null) $cmd->setConfiguration('Param3'     , $tab_cmds[$commande]['Config_Param3']     );
+            //if($tab_cmds[$commande]['Config_Param4']           !== null) $cmd->setConfiguration('Param4'     , $tab_cmds[$commande]['Config_Param4']     );
+            //if($tab_cmds[$commande]['Config_Param5']           !== null) $cmd->setConfiguration('Param5'     , $tab_cmds[$commande]['Config_Param5']     );
+            if($tab_cmds[$commande]['CoefMultip']              !== null) $cmd->setConfiguration('CoefMultip' , $tab_cmds[$commande]['CoefMultip']        );
+            
+            if($tab_cmds[$commande]['setValue']                !== null) $cmd->setValue( $this->getCmd( null, $tab_cmds[$commande]['setValue'] )->getId() ) ;
+            
+            if($tab_cmds[$commande]['setDisplay_param_step']   !== null) $cmd->setDisplay('parameters'  , ['step' => $tab_cmds[$commande]['setDisplay_param_step'] ]);
+            if($tab_cmds[$commande]['setDisplay_invertBinary'] !== null) $cmd->setDisplay('invertBinary', $tab_cmds[$commande]['setDisplay_invertBinary']           );
+            
+            if($tab_cmds[$commande]['setgeneric_type']         !== null) $cmd->setGeneric_type( $tab_cmds[$commande]['setgeneric_type'] );
+              
+            if($tab_cmds[$commande]['setTemplate_dashboard']   !== null) $cmd->setTemplate('dashboard', $tab_cmds[$commande]['setTemplate_dashboard'] );
+            if($tab_cmds[$commande]['setTemplate_mobile'   ]   !== null) $cmd->setTemplate('mobile'   , $tab_cmds[$commande]['setTemplate_mobile'   ] );
+            
+            //$cmd->setEventOnly(1); // obselete 4.2
+
+            $cmd->setEqLogic_id(   $this->getId() );
+            $cmd->setIsHistorized( $tab_cmds[$commande]['IsHistorized'] );
+            $cmd->setIsVisible(    $tab_cmds[$commande]['IsVisible'] );
+            $cmd->save();
+
+            return true ;
+        } // !is_object($cmd)
+        else{
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Commande '.$commande.' existante' );
+            if( $MajOrder ){
+                $cmd->setOrder( $tab_cmds[$commande]['Order'] );
+                $cmd->save();
+            }
+            if( $MajName ){
+                $cmd->setName(  __( $tab_cmds[$commande]['Name'] , __FILE__));
+                $cmd->save();
+            }
+        }
+        return true ;
+    }
+
+    //* Fonction permettant de mettre à jour les infos issus du json
+    public function updateDeviceCmd( $data = null ){
+        $cmds = $this->getCmd('info',null, true,true);
+        if (sizeof($cmds) > 0) {
+            foreach($cmds as $cmd) {
+                //log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Commande='.$cmd->getName().' - '.$cmd->getlogicalId().'-'.$cmd->getConfiguration('JsonElement') );
+                $val = $this->getJSONElementByName( $cmd->getConfiguration('JsonElement') , $data ) ;//JsonElement
+                if( $val !== 'mon_element_json_non_trouve' ){
+                    // element trouvé dans le json
+                    $this->checkAndUpdateCmd( $cmd->getlogicalId() , $data );
+                }
+            }
+        }
+    }
   
     //* Fonction permettant de mettre à jour les infos issus du json
-    public function updateDeviceCmd( $deviceId , $data = null ){
+    public function updateDeviceCmd2( $deviceId , $data = null ){
     
         // Si pas de données fournies, on va les cherchers pour le deviceId (getDetail)
         if( $data == null ){
@@ -144,12 +311,19 @@ class hydrolinkhome extends eqLogic {
     
         // On vérifier si le tbleau possede au moins la donnée $data['properties']['_internal_is_online']
         if( !isset( $data['properties']['_internal_is_online'] ) ){
-            log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': json invalide' );
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': json invalide' );
             return false ;
         }
 
-        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $data '.$data['system_type'] );
+        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': $data '.$data['system_type'] );
 
+        /*
+        $test1 = $data['properties']['treated_water_avail_gals']['value'] ;
+        $var = "data['properties']['treated_water_avail_gals']['value']" ;
+        eval('$test2 = $'.$var.';') ;
+        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': MON TEST1='.$test1 );
+        log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': MON TEST2='.$test2 );
+        */
     
         // bla bla
         $this->checkAndUpdateCmdIsset('gallons_used_today', $data['properties']['gallons_used_today']['value'] * 3.785 );
@@ -214,10 +388,10 @@ class hydrolinkhome extends eqLogic {
     //* Fonction exécutée automatiquement toutes les minutes par Jeedom
     public static function cron() {
         // Mise à jour des commandes infos
-        $refresh_freq = config::byKey('refresh_freq',__CLASS__,'10') ; // Toutes les 10 min par défaut si non parametré
+        $refresh_freq = config::byKey('refresh_freq','hydrolinkhome','10') ; // Toutes les 10 min par défaut si non parametré
         if( $refresh_freq > 0 ){ // Si param != off
             if( (date("i") % $refresh_freq ) == 0 ){ // Si on tombe bien sur le x minute
-                log::add(__CLASS__, 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Refresh commande...' );
+                log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Refresh commande...' );
                 self::synchronise() ;
             }
         }
@@ -254,13 +428,13 @@ class hydrolinkhome extends eqLogic {
     public static function cronDaily() {        
         $aujourdhui =  strtotime( date(  "Y-m-d H:i:s" ) ) ;
         $cible = strtotime( "2026-07-01 00:00:00" ) ;         
-        if( $aujourdhui > $cible && (date('w', $aujourdhui )) == '0' ){
+        if( $aujourdhui > $cible && (date('w', $aujourdhui )) == '0' ){ //0=dimanche
          
-            // On cherche leplugin heatzy pour vérifier l'origine de l'installation
+            // On cherche le plugin 'hydrolinkhome' pour vérifier l'origine de l'installation
             foreach (update::all() as $update) {
-                if ($update->getLogicalId() == 'heatzy'){
+                if ($update->getLogicalId() == 'hydrolinkhome'){
                     if( $update->getSource()  != 'market' ){
-                        message::add("Heatzy", 'Votre plugin HydroLink Home a été installé depuis une version autre que le market (github ou fichier). La version officielle du plugin HEATZY a été mise à jour sur le market. Je vous invite à aller sur le market et réinstaller le pugin HEATZY. Votre configuration (compte, appareils et commandes) sera conservée. Merci' );
+                        message::add('hydrolinkhome', 'Votre plugin HydroLink Home a été installé depuis une version autre que le market (github ou fichier). Nous préconisons l\'installation depuis le market pour profiter au mieux du support. Merci' );
                         break;
                     } //if
                 } //if
@@ -320,7 +494,7 @@ class hydrolinkhome extends eqLogic {
 
     // Fonction exécutée automatiquement après la sauvegarde (création ou mise à jour) de l'équipement
     public function postSave() {
-      
+      /*
         /// Creation de la commande de rafraichissement
         $cmd = $this->getCmd(null, 'refresh');
         if (!is_object($cmd)) {
@@ -427,7 +601,7 @@ class hydrolinkhome extends eqLogic {
             $cmd->save();
         }
     
-     /*   /// Creation de la commande action 
+        /// Creation de la commande action 
         $cmd = $this->getCmd(null, 'regen_status_enum');
         if (!is_object($cmd)) {
             $cmd = new hydrolinkhomeCmd();
@@ -444,7 +618,7 @@ class hydrolinkhome extends eqLogic {
           	//$cmd->setIsHistorized(0);
             $cmd->setIsVisible(1);
             $cmd->save();
-        }*/
+        }
     
         /// Creation de la commande info 
         $cmd = $this->getCmd(null, 'salt_level_percent_rounded');
@@ -522,7 +696,7 @@ class hydrolinkhome extends eqLogic {
         $cmd = $this->getCmd(null, 'water_treatment_total_water_used_value');
         if (!is_object($cmd)) {
             $cmd = new hydrolinkhomeCmd();
-            $cmd->setName(__('ZEIT water_treatment_total_water_used_value', __FILE__));
+            $cmd->setName(__('water_treatment_total_water_used_value', __FILE__));
             $cmd->setLogicalId('water_treatment_total_water_used_value');
             $cmd->setType('info');
             $cmd->setSubType('numeric');
@@ -660,7 +834,7 @@ class hydrolinkhome extends eqLogic {
           	$cmd->setIsHistorized(0);
             $cmd->setIsVisible(1);
             $cmd->save();
-        } 
+        } */
     }
 
     // Fonction exécutée automatiquement avant la suppression de l'équipement
