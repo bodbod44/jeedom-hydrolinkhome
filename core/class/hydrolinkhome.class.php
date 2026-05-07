@@ -156,15 +156,30 @@ class hydrolinkhome extends eqLogic {
         $tab_cmds = json_decode($json, true);
         if( $tab_cmds === false ) return false ;
         foreach ( $tab_cmds as $commande) {
-            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): $commande = '.$commande['Name'].' - '.$commande['LogicalId'] );
-            //$val = self::getJSONElementByName( $commande['Config_Param2'] , $data ) ;
-            $this->CreateCmd( $commande['LogicalId'] ) ;
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): $commande = '.$commande['Name'].' - '.$commande['LogicalId'].' - '.$commande['Config_JsonElement'] );
+            
+            $element = $this->getJSONElementByName( $commande['Config_JsonElement'] , $data ) ;
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): $element= '.$element );
+            if( $element !== 'mon_element_json_non_trouve' ){ // verifie que le contenu de la commande est présent dans le JSON
+                log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): $commande = '.$commande['Name'].' trouvé dans le JSON. On va créer la cmd' );
+                //$val = self::getJSONElementByName( $commande['Config_Param2'] , $data ) ;
+                $this->CreateCmd( $commande['LogicalId'] ) ;
+            }
+            else{
+                log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): $commande = '.$commande['Name'].' non trouvé dans le JSON. Pas de création de cmd' );
+            }
         } //foreach
       
     }    
   
 //class hydrolinkhome extends eqLogic
     public static function getJSONElementByName( $element , $data ) { 
+    
+        if( empty($element) ){
+            log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): Chemin JSON non valorisdé dans le fichier des commandes' );
+            return 'mon_element_json_non_trouve' ;
+        }
+            
         /* Methode avec eval mais plus dangereuse
         $val = false ;
         eval('$val = $data'.$element.';') ;
@@ -197,6 +212,7 @@ class hydrolinkhome extends eqLogic {
             if( !isset( $val[ $el ] ) ){
                 $val = 'mon_element_json_non_trouve' ;
                 log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): el='.$el.' NON trouve' );
+                break ;
             }
             else
                 log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): el='.$el.' trouve' );
@@ -254,9 +270,10 @@ class hydrolinkhome extends eqLogic {
             
             if($tab_cmds[$commande]['setValue']                !== null) $cmd->setValue( $this->getCmd( null, $tab_cmds[$commande]['setValue'] )->getId() ) ;
             
-            if($tab_cmds[$commande]['setDisplay_param_step']   !== null) $cmd->setDisplay('parameters'  , ['step' => $tab_cmds[$commande]['setDisplay_param_step'] ]);
-            if($tab_cmds[$commande]['setDisplay_invertBinary'] !== null) $cmd->setDisplay('invertBinary', $tab_cmds[$commande]['setDisplay_invertBinary']           );
-            
+            if($tab_cmds[$commande]['setDisplay_param_step']            !== null) $cmd->setDisplay('parameters'           , ['step' => $tab_cmds[$commande]['setDisplay_param_step'] ]);
+            if($tab_cmds[$commande]['setDisplay_invertBinary']          !== null) $cmd->setDisplay('invertBinary'         , $tab_cmds[$commande]['setDisplay_invertBinary']           );
+            if($tab_cmds[$commande]['setDisplay_forceReturnLineBefore'] !== null) $cmd->setDisplay('forceReturnLineBefore', $tab_cmds[$commande]['setDisplay_forceReturnLineBefore']  );
+                        
             if($tab_cmds[$commande]['setgeneric_type']         !== null) $cmd->setGeneric_type( $tab_cmds[$commande]['setgeneric_type'] );
               
             if($tab_cmds[$commande]['setTemplate_dashboard']   !== null) $cmd->setTemplate('dashboard', $tab_cmds[$commande]['setTemplate_dashboard'] );
@@ -287,14 +304,14 @@ class hydrolinkhome extends eqLogic {
 
     //* Fonction permettant de mettre à jour les infos issus du json
     public function updateDeviceCmd( $data = null ){
-        $cmds = $this->getCmd('info',null, true,true);
+        $cmds = $this->getCmd('info',null, true,true); // parcours toutes cmd info
         if (sizeof($cmds) > 0) {
-            foreach($cmds as $cmd) {
+            foreach($cmds as $cmd) { // parcours toutes cmd info
                 //log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.')'.': Commande='.$cmd->getName().' - '.$cmd->getlogicalId().'-'.$cmd->getConfiguration('JsonElement') );
                 $val = $this->getJSONElementByName( $cmd->getConfiguration('JsonElement') , $data ) ;//JsonElement
                 if( $val !== 'mon_element_json_non_trouve' ){
                     // element trouvé dans le json
-                    $this->checkAndUpdateCmd( $cmd->getlogicalId() , $data );
+                    $this->checkAndUpdateCmd( $cmd->getlogicalId() , $val );
                 }
             }
         }
