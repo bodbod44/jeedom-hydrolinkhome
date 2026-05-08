@@ -1,18 +1,41 @@
-# Plugin template
+# Plugin HydroLink Home (hydrolinkhome)
 
-Ce "template de plugin" sert de base à la réalisation de plugins pour **Jeedom**.
+Ce plugin sert à récupérer les données des adoucisseurs connectés Hydrolink.
 
-La documentation générale relative à la conception de plugin est consultable [ici](https://doc.jeedom.com/fr_FR/dev/).
 
-Dans le détail :   
-* [Utilisation du template de plugin](https://doc.jeedom.com/fr_FR/dev/plugin_template) : Le template de plugin est une base de plugin pour Jeedom qui doit être adaptée avec l'id de votre plugin et à laquelle il suffit d'ajouter vos propres fonctions.
+## Gestion du plugin :
+- ![gestion](../images/gestion.png "gestion")
+  - **Configuration** : Configuration du plugin
+  - **Documentation** : Lien vers la docuementation du plugin (cette page)
+  - **Assistance** : Lien permettant d'aller sur le forum directement sur les sujets HydrolinkHome
 
-* [Fichier info.json](https://doc.jeedom.com/fr_FR/dev/structure_info_json) : Intégré depuis la version 3.0 de Jeedom, le fichier **info.json** est obligatoire pour le bon fonctionnement des plugins et leur bon déploiement sur le Market Jeedom.
+## Configuration du plugin :
+- ![Configuration](../images/Configuration.png "Configuration")
+  - **Email** : Email du compte HydroLink Home
+  - **Mot de passe** : Mot de passe du compte HydroLink Home
+  - **Region** : Region d'appartenance du compte (hydrolinkhome.**EU** ou hydrolinkhome.**COM**)
+  - **Frequence de rafaichissement** : Fréquence à laquelle le plugin ira récupérer la mise à jour des informations sur le serveur HydroLink (10 min par défaut)
+  - **Synchronisation** : Bouton premettant de synchroniser manuellement le plugin avec le compte Hydrolink (récupération des appareils, mise à jour des informations)
 
-* [Icône du plugin](https://doc.jeedom.com/fr_FR/dev/Icone_de_plugin) : Afin de pouvoir être publié sur le Market Jeedom, tout plugin doit disposer d’une icône. Attention à ne pas utiliser le même code couleur que les icônes des plugins Jeedom officiels.
+## Affichage des appareils :
+- ![MesHydrolinkHome](../images/MesHydrolinkHome.png "MesHydrolinkHome")
 
-* [Widget du plugin](https://doc.jeedom.com/fr_FR/dev/widget_plugin) : Présentation des différentes manières d'inclure des widgets personnalisés au plugin.
+  -Tous les appareils rattachés au compte seront affichés ici
 
-* [Documentation du plugin](https://doc.jeedom.com/fr_FR/dev/documentation_plugin) : Présentation de la mise en place d'une documentation car un bon plugin n'est rien sans documentation adéquate.
+## Parametres des appareils :
+- ![parametres](../images/parametres.png "parametres")
+  - **Identifiant de l'appareil** : Identifiant technique de l'appareil. Il ne peut pas être modifié
+  - **Description** : Champ libre de saisie
+  - **Date création** : Date de création de l'équipement dans jeedom
+  - **Date mise à jour** : Date de mise à jour de l'équipement dans jeedom
+  - **Nom** : Nom et prénom lié à l'appareil
+  - **Localisation** : Localisation de l'appareil
+  - **SSID Wifi** : Nom du Wifi auquel est rattaché l'appareil
+  - **Aperçu** : Image d l'appareil
 
-* [Publication du plugin](https://doc.jeedom.com/fr_FR/dev/publication_plugin) : Description des pré-requis indispensables à la publication du plugin.
+## Informations récupérées :
+- Ce jour (gallons_used_today) : Cette donnée ....
+
+
+## Commandes action
+- Rafraichir (refresh) : Action permettant de rafraichir les données à la demande

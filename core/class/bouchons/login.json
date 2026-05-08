@@ -1,9 +1,9 @@
 {
     "$schema": "https://api.hydrolinkhome.com/v1/schemas/AuthLoginOutputBody.json",
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZWFsZXJfYWRtaW5fZm9yIjpudWxsLCJlbWFpbCI6ImZhYnJpY2UuYm9keUBsYXBvc3RlLm5ldCIsImV4cCI6MTc3NzYxMzYwNiwiZmlyc3RuYW1lIjoiRmFicmljZSIsImlhdCI6MTc3NzUyNzIwNiwiaXNfYWRtaW4iOmZhbHNlLCJpc19jdXN0b21lcl9zdXBwb3J0IjpmYWxzZSwiaXNfZGVhbGVyX2FkbWluIjpmYWxzZSwiaXNfdGVjaG5pY2lhbiI6ZmFsc2UsImlzX3ZlcmlmaWVkIjp0cnVlLCJsYXN0bmFtZSI6IkJPRFkiLCJzdWIiOiI1ZTc1YmVjNS0zNGE0LTRmMzYtYjlmMy00MDk1MWY3OTFlMmQiLCJ0eXAiOiJhIn0.H6qn5DlgFV3aTqu7nco9k1VKfe1U5Yh4bS_hk6TgN-E",
-    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzgxMzIwMDYsImlhdCI6MTc3NzUyNzIwNiwic3ViIjoiNWU3NWJlYzUtMzRhNC00ZjM2LWI5ZjMtNDA5NTFmNzkxZTJkIiwidHlwIjoiciJ9.w7727T0xqnaHubEkfehet2mEMLQujWGVYDyn_0tjCbw",
+    "access_token": "xxxhbGxxOixxUzxxNixxxxR5xxxxIkpXVxxx.x",
+    "refresh_token": "xxxhbGxxOixxUzxxNixxxxR5xxxxIkpXVxxx.y",
     "is_verified": true,
-    "user_id": "5e75bec5-34a4-4f36-b9f3-40951f791e2d",
+    "user_id": "5xx5bxx5-xxxx-xxxx-xxxx-xxx5xxxx1xxx",
     "is_admin": false,
     "is_customer_support": false,
     "is_marketing": false

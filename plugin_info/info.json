@@ -37,7 +37,7 @@
         }
     },
     "description": {
-        "fr_FR": "Template servant de base \u00e0 la cr\u00e9ation de plugins pour Jeedom"
+        "fr_FR": "Plugin permettant de lire les données HydroLink Home"
     },
     "licence": "AGPL",
     "author": "bodbod44",
@@ -49,10 +49,10 @@
     "category": "energy",
     "hasDependency": false,
     "hasOwnDeamon": false,
-    "changelog_beta": "https://doc.jeedom.com/#language#/plugins/programming/hydrolinkhome/beta/changelog",
-    "changelog": "https://doc.jeedom.com/#language#/plugins/programming/hydrolinkhome/changelog",
-    "documentation_beta": "https://doc.jeedom.com/#language#/plugins/programming/hydrolinkhome/beta",
-    "documentation": "https://doc.jeedom.com/#language#/plugins/programming/hydrolinkhome",
+    "changelog_beta": "https://github.com/bodbod44/jeedom-hydrolinkhome/blob/beta/docs/fr_FR/changelog_beta.md",
+    "changelog": "https://github.com/bodbod44/jeedom-hydrolinkhome/blob/master/docs/fr_FR/changelog.md",
+    "documentation_beta": "https://github.com/bodbod44/jeedom-hydrolinkhome/blob/beta/docs/fr_FR/index.md",
+    "documentation": "https://github.com/bodbod44/jeedom-hydrolinkhome/blob/master/docs/fr_FR/index.md",
     "link": {
         "forum": "Lien vers le forum",
         "video": "Lien vers une video"
