@@ -50,7 +50,7 @@ class outils {
         }
       
         $val = $data ;
-        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): var_export='.var_export( $tab_el , true) );
+        //log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): var_export='.var_export( $tab_el , true) );
         foreach( $tab_el as $el ){
             if( !isset( $val[ $el ] ) ){
                 $val = 'mon_element_json_non_trouve' ;

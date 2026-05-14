@@ -128,7 +128,7 @@ class hydrolinkhome extends eqLogic {
             $eqLogic->setName( $deviceId );
             $eqLogic->setIsVisible(1);
             $eqLogic->setIsEnable(1);
-            $eqLogic->setCategory('heating', 1);
+            $eqLogic->setCategory('energy', 1);
             $eqLogic->save();
             log::add('hydrolinkhome', 'info', '1 nouveau module HydroLink Home ajouté ('.$deviceId.')');
         }
