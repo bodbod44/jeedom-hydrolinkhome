@@ -3,20 +3,33 @@
 class outils {
 
 //class outils
-    public static function LireJSON( $json_name , $formatTab = false ) {
-      	log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.') '.__DIR__.'/'.$json_name ) ;
-        $json = file_get_contents(__DIR__.'/'.$json_name) ;
+    public static function LireJSON( $json_name , $format = 'tab' ) {
+        $json = file_get_contents(__DIR__.'/'.$json_name.'.json') ;
         if( $json ) {
-            if( !json_decode( $json , true ) ){
-                log::add('hydrolinkhome', 'error',  __METHOD__.'(ln '.__LINE__.') JSON invalide - Problème decode '.$json_name ) ;
+            $tab = json_decode( $json , true );
+            if( !$tab ){
+                log::add('hydrolinkhome', 'error',  __METHOD__.'(ln '.__LINE__.') JSON invalide - Problème decode '.$json_name.'.json' ) ;
                 return false ;
             }
-          	return $json ;
         }
         else{
-            log::add('hydrolinkhome', 'error',  __METHOD__.'(ln '.__LINE__.') Problème lecture '.$json_name ) ;
+            log::add('hydrolinkhome', 'error',  __METHOD__.'(ln '.__LINE__.') Problème lecture '.$json_name.'.json' ) ;
             return false ;
-        }
+        }        
+        
+        switch( $format ){
+            case 'tab':
+                return $tab ;
+                break;
+            case 'json':
+                return $json ;
+                break;
+            default :
+                log::add('hydrolinkhome', 'error',  __METHOD__.'(ln '.__LINE__.')'.' : Type de format de sortie inconnu ('.$format.')');
+                break;
+        } // switch
+
+        return $false ;
     }
     
 
@@ -50,7 +63,7 @@ class outils {
         }
       
         $val = $data ;
-        log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): var_export='.var_export( $tab_el , true) );
+        //log::add('hydrolinkhome', 'debug',  __METHOD__.'(ln '.__LINE__.'): var_export='.var_export( $tab_el , true) );
         foreach( $tab_el as $el ){
             if( !isset( $val[ $el ] ) ){
                 $val = 'mon_element_json_non_trouve' ;
