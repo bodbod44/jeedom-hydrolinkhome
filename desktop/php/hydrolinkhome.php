@@ -24,6 +24,22 @@ $eqLogics = eqLogic::byType($plugin->getId());
 				<br>
 				<span>{{Configuration}}</span>
 			</div>
+			<div class="cursor eqLogicAction logoSecondary" onclick="window.open('https://github.com/bodbod44/jeedom-hydrolinkhome/blob/beta/docs/fr_FR/index.md', '_blank');">
+				<i class="fas fa-book-open"></i>
+				<br>
+				<span>{{Documentation}}</span>
+			</div>
+			<div class="cursor eqLogicAction logoSecondary" onclick="window.open('https://community.jeedom.com/tag/plugin-hydrolinkhome', '_blank');">
+				<i class="fas fa-ambulance"></i>
+				<br>
+				<span>{{Assistance}}</span>
+			</div>
+			<div class="cursor eqLogicAction logoSecondary" id="bt_debugHydrolinkhome" style="display:<?php if(log::getLogLevel('hydrolinkhome') == 100) echo 'display' ; else echo 'none' ; ?>">
+				<i class="fa fa-search-location"></i>
+				<br>
+				<span>{{Debug}}</span>
+			</div>
+			
 		</div>
 		<legend><i class="fas fa-table"></i> {{Mes hydrolinkhomes}}</legend>
 		<?php
@@ -43,7 +59,8 @@ $eqLogics = eqLogic::byType($plugin->getId());
 			foreach ($eqLogics as $eqLogic) {
 				$opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
 				echo '<div class="eqLogicDisplayCard cursor ' . $opacity . '" data-eqLogic_id="' . $eqLogic->getId() . '">';
-				echo '<img src="' . $eqLogic->getImage() . '"/>';
+				//$image_url = $eqLogic->getConfiguration('image_url', null) ;              
+              	echo '<img src="'.$eqLogic->getConfiguration('image_url', "xx").'" onerror="this.src='."'".$eqLogic->getImage()."';".'"/>';      
 				echo '<br>';
 				echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
 				echo '<span class="hiddenAsCard displayTableRight hidden">';
@@ -128,36 +145,19 @@ $eqLogics = eqLogic::byType($plugin->getId());
 
 							<legend><i class="fas fa-cogs"></i> {{Paramètres spécifiques}}</legend>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Nom du paramètre n°1}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le paramètre n°1 de l'équipement}}"></i></sup>
+								<label class="col-sm-4 control-label">{{Identifiant de l'appareil}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Identifiant de l'appareil}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
-									<input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="param1" placeholder="{{Paramètre n°1}}">
+									<input type="text" class="eqLogicAttr form-control" data-l1key="logicalId" placeholder="{{Identifiant de l'appareil}}" readonly>
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="col-sm-4 control-label"> {{Mot de passe}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Renseignez le mot de passe}}"></i></sup>
+								<label class="col-sm-4 control-label">{{Description}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Description}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
-									<input type="text" class="eqLogicAttr form-control inputPassword" data-l1key="configuration" data-l2key="password">
-								</div>
-							</div>
-							<!-- Exemple de champ de saisie du cron d'auto-actualisation avec assistant -->
-							<!-- La fonction cron de la classe du plugin doit contenir le code prévu pour que ce champ soit fonctionnel -->
-							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Auto-actualisation}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Fréquence de rafraîchissement des commandes infos de l'équipement}}"></i></sup>
-								</label>
-								<div class="col-sm-6">
-									<div class="input-group">
-										<input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="autorefresh" placeholder="{{Cliquer sur ? pour afficher l'assistant cron}}">
-										<span class="input-group-btn">
-											<a class="btn btn-default cursor jeeHelper roundedRight" data-helper="cron" title="Assistant cron">
-												<i class="fas fa-question-circle"></i>
-											</a>
-										</span>
-									</div>
+									<textarea class="eqLogicAttr form-control" data-l1key="comment"></textarea>
 								</div>
 							</div>
 						</div>
@@ -166,12 +166,54 @@ $eqLogics = eqLogic::byType($plugin->getId());
 						<!-- Affiche un champ de commentaire par défaut mais vous pouvez y mettre ce que vous voulez -->
 						<div class="col-lg-6">
 							<legend><i class="fas fa-info"></i> {{Informations}}</legend>
+
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Description}}</label>
+								<label class="col-sm-4 control-label">{{Date création}}</label>
 								<div class="col-sm-6">
-									<textarea class="form-control eqLogicAttr autogrow" data-l1key="comment"></textarea>
+									<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="createtime" title="{{Date de dernière communication}}" style="font-size : 1em;cursor : default;"></span>
 								</div>
 							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Date mise à jour}}</label>
+								<div class="col-sm-6">
+									<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="updatetime" title="{{Date de dernière mise à jour}}" style="font-size : 1em;cursor : default;"></span>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Nom}}</label>
+								<div class="col-sm-6">
+									<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="user" title="{{Nom}}" style="font-size : 1em;cursor : default;"></span>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Localisation}}</label>
+								<div class="col-sm-6">
+									<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="location" title="{{Localisation}}" style="font-size : 1em;cursor : default;"></span>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{SSID Wifi}}</label>
+								<div class="col-sm-6">
+									<span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="wifi_ssid" title="{{SSID Wifi}}" style="font-size : 1em;cursor : default;"></span>
+								</div>
+							</div>
+                                      
+                            <!-- Champ de saisie de l'URL -->
+                            <div class="form-group" style="display:none">
+                                <label class="col-sm-4 control-label">{{URL de l'image}}</label>
+                                <div class="col-sm-6">
+                                    <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="image_url" placeholder="{{URL de l'image}}"/>
+                                </div>
+                            </div>
+
+                            <!-- Zone d'affichage de l'image -->
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{Aperçu}}</label>
+                                <div class="col-sm-6">
+                                    <img src="" id="img_device_preview" class="img-responsive" style="max-height : 250px; border: 0px solid #ddd; padding: 5px; border-radius: 5px;" onerror="this.src='plugins/hydrolinkhome/core/template/images/error.jpg';"/>
+                                </div>
+                            </div>
+                            
 						</div>
 					</fieldset>
 				</form>
@@ -202,6 +244,26 @@ $eqLogics = eqLogic::byType($plugin->getId());
 		</div><!-- /.tab-content -->
 	</div><!-- /.eqLogic -->
 </div><!-- /.row row-overflow -->
+
+<script>
+function printEqLogic(_eqLogic) {
+    // ... votre code existant ...
+    
+    // On récupère l'url depuis la config et on l'injecte dans le src de l'image
+    if (typeof _eqLogic.configuration.image_url !== 'undefined' && _eqLogic.configuration.image_url !== '') {
+        $('#img_device_preview').attr('src', _eqLogic.configuration.image_url);
+    } else {
+        $('#img_device_preview').attr('src', 'plugins/hydrolinkhome/core/template/images/adoucisseur.jpg');
+    }
+}
+
+$('body').off('change', '.eqLogicAttr[data-l1key=configuration][data-l2key=image_url]').on('change', '.eqLogicAttr[data-l1key=configuration][data-l2key=image_url]', function () {
+    var url = $(this).value();
+    if (url != '') {
+        $('#img_device_preview').attr('src', url);
+    }
+});
+</script>
 
 <!-- Inclusion du fichier javascript du plugin (dossier, nom_du_fichier, extension_du_fichier, id_du_plugin) -->
 <?php include_file('desktop', 'hydrolinkhome', 'js', 'hydrolinkhome'); ?>

@@ -1,26 +1,15 @@
-# Changelog plugin template - beta
+# Changelog plugin Hydrolink Home
 
-# 19/01/2022
+>**IMPORTANT**
+>
+>S'il n'y a pas d'information sur la mise à jour, c'est que celle-ci concerne uniquement de la mise à jour de documentation, de traduction ou de texte.
 
-- Optimisations V4.2
 
-# 20/11/2020
+# 08/05/2026
 
-- Présentation officielle V4
-- Ajouts d'éléments d'informations et de paramètres pour les commandes
+- Testé sur Trixie (Debian13.4 / jeedom 4.5.3 / Python 3.13.5 / PHP8.4.16)
 
-# 16/11/2020
 
-- version minimale Jeedom: 3.3.39 (dernière MAJ critique)
+# 07/05/2026
 
-# 04/11/2020
-
-- Nouvelle présentation de la liste des objets
-
-# 07/08/2020
-
-- Ajout de commentaires
-
-# 17/05/2020
-
-- Mise à jour de la documentation
+- Création du plugin
